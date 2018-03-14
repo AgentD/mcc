@@ -103,7 +103,7 @@ typedef enum {
 	SEX_ARRAY_INDEX,
 	SEX_CALL,
 	SEX_UNARY,
-} E_SINGLE_EXPR;
+} E_EXPR_TYPE;
 
 typedef enum {
 	UNARY_NEG,	/**< \brief Negation. Usually two's complement */
@@ -111,7 +111,7 @@ typedef enum {
 } E_UNARY;
 
 struct expression_t {
-	E_SINGLE_EXPR type;
+	E_EXPR_TYPE type;
 
 	union {
 		literal_t lit;
@@ -152,10 +152,9 @@ expression_t *sex_call(off_t identifier, arg_t *args);
 
 arg_t *mkarg(expression_t *expr, arg_t *rhs);
 
-void sex_free(expression_t *sex);
+expression_t *mkexp(expression_t *left, E_EXPR_TYPE type, expression_t *right);
 
-expression_t *mkexp(expression_t *left, E_SINGLE_EXPR type,
-		    expression_t *right);
+void expr_free(expression_t *sex);
 
 #ifdef __cplusplus
 }

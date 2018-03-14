@@ -59,7 +59,17 @@ arg_t *mkarg(expression_t *expr, arg_t *rhs)
 	return arg;
 }
 
-void sex_free(expression_t *sex)
+expression_t *mkexp(expression_t *left, E_EXPR_TYPE type, expression_t *right)
+{
+	expression_t *e = calloc(1, sizeof(*e));
+
+	e->type = type;
+	e->u.binary.left = left;
+	e->u.binary.right = right;
+	return e;
+}
+
+void expr_free(expression_t *sex)
 {
 	arg_t *arg;
 
@@ -69,37 +79,26 @@ void sex_free(expression_t *sex)
 		case SEX_IDENTIFIER:
 			break;
 		case SEX_ARRAY_INDEX:
-			sex_free(sex->u.array_idx.index);
+			expr_free(sex->u.array_idx.index);
 			break;
 		case SEX_CALL:
 			while (sex->u.call.args != NULL) {
 				arg = sex->u.call.args;
 				sex->u.call.args = arg->next;
 
-				sex_free(arg->expr);
+				expr_free(arg->expr);
 				free(arg);
 			}
 			break;
 		case SEX_UNARY:
-			sex_free(sex->u.unary.exp);
+			expr_free(sex->u.unary.exp);
 			break;
 		default:
-			sex_free(sex->u.binary.left);
-			sex_free(sex->u.binary.right);
+			expr_free(sex->u.binary.left);
+			expr_free(sex->u.binary.right);
 			break;
 		}
 
 		free(sex);
 	}
-}
-
-expression_t *mkexp(expression_t *left, E_SINGLE_EXPR type,
-		    expression_t *right)
-{
-	expression_t *e = calloc(1, sizeof(*e));
-
-	e->type = type;
-	e->u.binary.left = left;
-	e->u.binary.right = right;
-	return e;
 }

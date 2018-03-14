@@ -183,6 +183,6 @@ int main(int argc, char **argv)
 	sex_to_dot(result.expression);
 	fputs("}\n", stdout);
 
-	sex_free(result.expression);
+	expr_free(result.expression);
 	return EXIT_SUCCESS;
 }
