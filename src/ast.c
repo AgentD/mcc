@@ -2,19 +2,14 @@
 
 #include "ast.h"
 
-static program_t *program = NULL;
-
 void mcc_init_program(program_t *prog)
 {
 	memset(prog, 0, sizeof(*prog));
 }
 
-program_t *mcc_get_program(void)
+void mcc_cleanup_program(program_t *prog)
 {
-	return program;
-}
-
-void mcc_set_program(program_t *prog)
-{
-	program = prog;
+	str_tab_cleanup(&prog->strings);
+	str_tab_cleanup(&prog->identifiers);
+	memset(prog, 0, sizeof(*prog));
 }

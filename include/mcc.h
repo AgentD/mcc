@@ -14,6 +14,7 @@ typedef enum {
 typedef struct {
 	E_PARSER_STATUS status;
 	expression_t *expression;
+	program_t program;
 } parser_result_t;
 
 #ifdef __cplusplus

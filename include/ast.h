@@ -108,9 +108,7 @@ extern "C" {
 
 void mcc_init_program(program_t *prog);
 
-program_t *mcc_get_program(void);
-
-void mcc_set_program(program_t *prog);
+void mcc_cleanup_program(program_t *prog);
 
 #ifdef __cplusplus
 }

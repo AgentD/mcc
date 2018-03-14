@@ -135,7 +135,10 @@ parser_result_t parse_file(FILE *input)
 
 	yyscan_t scanner;
 
+	mcc_init_program(&result.program);
+
 	yylex_init(&scanner);
+	yylex_init_extra(&result.program, &scanner);
 	yyset_in(input, scanner);
 
 	if (yyparse(scanner, &result.expression) != 0) {

@@ -4,6 +4,7 @@
 %option nounput
 %option noyywrap
 %option reentrant
+%option extra-type="program_t *"
 
 %{
 #include "parser.h"
@@ -59,7 +60,7 @@ float_literal [0-9]+\.[0-9]+
 ";"               { return TK_SEMICOLON; }
 
 {identifier}      {
-	program_t *p = mcc_get_program();
+	program_t *p = yyextra;
 
 	yylval->identifier = str_tab_add(&p->identifiers, yytext);
 	/* TODO: handle allocation error */
@@ -68,7 +69,7 @@ float_literal [0-9]+\.[0-9]+
 }
 
 {str_literal}     {
-	program_t *p = mcc_get_program();
+	program_t *p = yyextra;
 
 	yylval->lit = literal_string(str_tab_add(&p->strings, yytext));
 	/* TODO: handle allocation error */

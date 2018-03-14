@@ -6,8 +6,6 @@
 
 #include "mcc.h"
 
-static program_t prog;
-
 static void gen_name(const void *ptr, char *buffer)
 {
 	char *cptr;
@@ -42,21 +40,21 @@ static void print_label(const void *ptr, const char *label)
 	printf("\t%s [label=\"%s\"];\n", name, label);
 }
 
-static void sex_to_dot(expression_t *sex);
+static void sex_to_dot(program_t *prog, expression_t *sex);
 
-static void args_to_dot(arg_t *args)
+static void args_to_dot(program_t *prog, arg_t *args)
 {
 	print_label(args, "argument");
-	sex_to_dot(args->expr);
+	sex_to_dot(prog, args->expr);
 	print_arrow(args, args->expr);
 
 	if (args->next != NULL) {
-		args_to_dot(args->next);
+		args_to_dot(prog, args->next);
 		print_arrow(args, args->next);
 	}
 }
 
-static void sex_to_dot(expression_t *sex)
+static void sex_to_dot(program_t *prog, expression_t *sex)
 {
 	const char *str;
 	char buffer[32];
@@ -86,24 +84,24 @@ static void sex_to_dot(expression_t *sex)
 		print_label(sex, buffer);
 		break;
 	case SEX_IDENTIFIER:
-		str = str_tab_resolve(&prog.identifiers, sex->u.identifier);
+		str = str_tab_resolve(&prog->identifiers, sex->u.identifier);
 		print_label(sex, str);
 		break;
 	case SEX_ARRAY_INDEX:
 		ptr = &sex->u.array_idx.identifier;
-		str = str_tab_resolve(&prog.identifiers,
+		str = str_tab_resolve(&prog->identifiers,
 				      sex->u.array_idx.identifier);
 
 		print_label(sex, "array access");
 		print_label(ptr, str);
-		sex_to_dot(sex->u.array_idx.index);
+		sex_to_dot(prog, sex->u.array_idx.index);
 
 		print_arrow(sex, sex->u.array_idx.index);
 		print_arrow(sex, ptr);
 		break;
 	case SEX_CALL:
 		ptr = &sex->u.array_idx.identifier;
-		str = str_tab_resolve(&prog.identifiers,
+		str = str_tab_resolve(&prog->identifiers,
 				      sex->u.call.identifier);
 
 		print_label(sex, "call");
@@ -111,7 +109,7 @@ static void sex_to_dot(expression_t *sex)
 		print_arrow(sex, ptr);
 
 		if (sex->u.call.args != NULL) {
-			args_to_dot(sex->u.call.args);
+			args_to_dot(prog, sex->u.call.args);
 			print_arrow(sex, sex->u.call.args);
 		}
 		break;
@@ -122,7 +120,7 @@ static void sex_to_dot(expression_t *sex)
 		default:
 			assert(0);
 		}
-		sex_to_dot(sex->u.unary.exp);
+		sex_to_dot(prog, sex->u.unary.exp);
 		print_arrow(sex, sex->u.unary.exp);
 		break;
 	case BINOP_ADD: str = "+"; goto binary;
@@ -146,12 +144,12 @@ binary:
 	print_label(sex, str);
 
 	if (sex->u.binary.left != NULL) {
-		sex_to_dot(sex->u.binary.left);
+		sex_to_dot(prog, sex->u.binary.left);
 		print_arrow(sex, sex->u.binary.left);
 	}
 
 	if (sex->u.binary.right != NULL) {
-		sex_to_dot(sex->u.binary.right);
+		sex_to_dot(prog, sex->u.binary.right);
 		print_arrow(sex, sex->u.binary.right);
 	}
 }
@@ -169,9 +167,6 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	mcc_init_program(&prog);
-	mcc_set_program(&prog);
-
 	result = parse_file(stdin);
 
 	if (result.status != PARSER_STATUS_OK) {
@@ -180,9 +175,10 @@ int main(int argc, char **argv)
 	}
 
 	fputs("digraph mcc2dot {\n", stdout);
-	sex_to_dot(result.expression);
+	sex_to_dot(&result.program, result.expression);
 	fputs("}\n", stdout);
 
 	expr_free(result.expression);
+	mcc_cleanup_program(&result.program);
 	return EXIT_SUCCESS;
 }
