@@ -42,12 +42,12 @@ static void print_label(const void *ptr, const char *label)
 	printf("\t%s [label=\"%s\"];\n", name, label);
 }
 
-static void expr_to_dot(expression_t *exp);
+static void sex_to_dot(expression_t *sex);
 
 static void args_to_dot(arg_t *args)
 {
 	print_label(args, "argument");
-	expr_to_dot(args->expr);
+	sex_to_dot(args->expr);
 	print_arrow(args, args->expr);
 
 	if (args->next != NULL) {
@@ -56,7 +56,7 @@ static void args_to_dot(arg_t *args)
 	}
 }
 
-static void sex_to_dot(single_expr_t *sex)
+static void sex_to_dot(expression_t *sex)
 {
 	const char *str;
 	char buffer[32];
@@ -96,7 +96,7 @@ static void sex_to_dot(single_expr_t *sex)
 
 		print_label(sex, "array access");
 		print_label(ptr, str);
-		expr_to_dot(sex->u.array_idx.index);
+		sex_to_dot(sex->u.array_idx.index);
 
 		print_arrow(sex, sex->u.array_idx.index);
 		print_arrow(sex, ptr);
@@ -122,48 +122,37 @@ static void sex_to_dot(single_expr_t *sex)
 		default:
 			assert(0);
 		}
-		expr_to_dot(sex->u.unary.exp);
+		sex_to_dot(sex->u.unary.exp);
 		print_arrow(sex, sex->u.unary.exp);
 		break;
-	case SEX_NESTED:
-		print_label(sex, "nested expression");
-		expr_to_dot(sex->u.nested);
-		print_arrow(sex, sex->u.nested);
-		break;
-	}
-}
-
-static void expr_to_dot(expression_t *exp)
-{
-	const char *action = "dummy";
-
-	switch (exp->operation) {
-	case BINOP_ADD: action = "+"; break;
-	case BINOP_SUB: action = "-"; break;
-	case BINOP_MUL: action = "*"; break;
-	case BINOP_DIV: action = "/"; break;
-	case BINOP_LESS: action = "<"; break;
-	case BINOP_GREATER: action = ">"; break;
-	case BINOP_LEQ: action = "<="; break;
-	case BINOP_GEQ: action = ">="; break;
-	case BINOP_ANL: action = "&&"; break;
-	case BINOP_ORL: action = "||"; break;
-	case BINOP_EQU: action = "=="; break;
-	case BINOP_NEQU: action = "!="; break;
+	case BINOP_ADD: str = "+"; goto binary;
+	case BINOP_SUB: str = "-"; goto binary;
+	case BINOP_MUL: str = "*"; goto binary;
+	case BINOP_DIV: str = "/"; goto binary;
+	case BINOP_LESS: str = "<"; goto binary;
+	case BINOP_GREATER: str = ">"; goto binary;
+	case BINOP_LEQ: str = "<="; goto binary;
+	case BINOP_GEQ: str = ">="; goto binary;
+	case BINOP_ANL: str = "&&"; goto binary;
+	case BINOP_ORL: str = "||"; goto binary;
+	case BINOP_EQU: str = "=="; goto binary;
+	case BINOP_NEQU: str = "!="; goto binary;
 	default:
+		print_label(sex, "unknown node type");
 		break;
 	}
+	return;
+binary:
+	print_label(sex, str);
 
-	print_label(exp, action);
-
-	if (exp->left != NULL) {
-		sex_to_dot(exp->left);
-		print_arrow(exp, exp->left);
+	if (sex->u.binary.left != NULL) {
+		sex_to_dot(sex->u.binary.left);
+		print_arrow(sex, sex->u.binary.left);
 	}
 
-	if (exp->right != NULL) {
-		expr_to_dot(exp->right);
-		print_arrow(exp, exp->right);
+	if (sex->u.binary.right != NULL) {
+		sex_to_dot(sex->u.binary.right);
+		print_arrow(sex, sex->u.binary.right);
 	}
 }
 
@@ -191,9 +180,9 @@ int main(int argc, char **argv)
 	}
 
 	fputs("digraph mcc2dot {\n", stdout);
-	expr_to_dot(result.expression);
+	sex_to_dot(result.expression);
 	fputs("}\n", stdout);
 
-	expr_free(result.expression);
+	sex_free(result.expression);
 	return EXIT_SUCCESS;
 }

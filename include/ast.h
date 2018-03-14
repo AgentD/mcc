@@ -77,7 +77,6 @@ typedef struct {
 /******************************** expression ********************************/
 
 typedef struct expression_t expression_t;
-typedef struct single_expr_t single_expr_t;
 typedef struct arg_t arg_t;
 
 struct arg_t {
@@ -86,7 +85,6 @@ struct arg_t {
 };
 
 typedef enum {
-	BINOP_NOP,	/**< \brief There is no right hand side */
 	BINOP_ADD,
 	BINOP_SUB,
 	BINOP_MUL,
@@ -98,22 +96,13 @@ typedef enum {
 	BINOP_ANL,	/**< \brief Logic and */
 	BINOP_ORL,	/**< \brief Logic or */
 	BINOP_EQU,	/**< \brief Equality test */
-	BINOP_NEQU	/**< \brief Not equal */
-} E_BINOP;
+	BINOP_NEQU,	/**< \brief Not equal */
 
-struct expression_t {
-	E_BINOP operation;
-	single_expr_t *left;
-	expression_t *right;
-};
-
-typedef enum {
 	SEX_LITERAL,
 	SEX_IDENTIFIER,
 	SEX_ARRAY_INDEX,
 	SEX_CALL,
 	SEX_UNARY,
-	SEX_NESTED,
 } E_SINGLE_EXPR;
 
 typedef enum {
@@ -121,7 +110,7 @@ typedef enum {
 	UNARY_INV,	/**< \brief Logical inverse */
 } E_UNARY;
 
-struct single_expr_t {
+struct expression_t {
 	E_SINGLE_EXPR type;
 
 	union {
@@ -144,7 +133,10 @@ struct single_expr_t {
 			expression_t *exp;
 		} unary;
 
-		expression_t *nested;
+		struct {
+			expression_t *left;
+			expression_t *right;
+		} binary;
 	} u;
 };
 
@@ -152,19 +144,18 @@ struct single_expr_t {
 extern "C" {
 #endif
 
-single_expr_t *sex_literal(literal_t lit);
-single_expr_t *sex_identifier(off_t identifier);
-single_expr_t *sex_nested(expression_t *nested);
-single_expr_t *sex_unary(E_UNARY op, expression_t *exp);
-single_expr_t *sex_array_access(off_t identifier, expression_t *index);
-single_expr_t *sex_call(off_t identifier, arg_t *args);
+expression_t *sex_literal(literal_t lit);
+expression_t *sex_identifier(off_t identifier);
+expression_t *sex_unary(E_UNARY op, expression_t *exp);
+expression_t *sex_array_access(off_t identifier, expression_t *index);
+expression_t *sex_call(off_t identifier, arg_t *args);
 
 arg_t *mkarg(expression_t *expr, arg_t *rhs);
 
-void sex_free(single_expr_t *sex);
+void sex_free(expression_t *sex);
 
-expression_t *mkexp(single_expr_t *left, E_BINOP binop, expression_t *right);
-void expr_free(expression_t *expr);
+expression_t *mkexp(expression_t *left, E_SINGLE_EXPR type,
+		    expression_t *right);
 
 #ifdef __cplusplus
 }

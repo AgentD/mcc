@@ -67,7 +67,7 @@ void yyerror(yyscan_t *scanner, expression_t **result, const char *yymsgp);
 %type <binop> binary_op
 
 %type <exp> expression
-%type <sexp> single_expr
+%type <exp> single_expr
 %type <lit> literal
 %type <unop> unary_op
 %type <args> arguments
@@ -100,7 +100,7 @@ binary_op : TK_PLUS     { $$ = BINOP_ADD; }
 single_expr : literal                             { $$ = sex_literal($1); }
             | TK_IDENTIFIER                       { $$ = sex_identifier($1); }
             | unary_op expression                 { $$ = sex_unary($1, $2); }
-            | TK_PAR_OPEN expression TK_PAR_CLOSE { $$ = sex_nested($2); }
+            | TK_PAR_OPEN expression TK_PAR_CLOSE { $$ = $2; }
             | TK_IDENTIFIER TK_BRK_OPEN expression TK_BRK_CLOSE { $$ = sex_array_access($1, $3); }
             | TK_IDENTIFIER TK_PAR_OPEN TK_PAR_CLOSE            { $$ = sex_call($1, NULL); }
             | TK_IDENTIFIER TK_PAR_OPEN arguments TK_PAR_CLOSE  { $$ = sex_call($1, $3); }
@@ -110,8 +110,8 @@ arguments : expression                    { $$ = mkarg($1, NULL); }
           | expression TK_COMMA arguments { $$ = mkarg($1, $3); }
           ;
 
-expression : single_expr                      { $$ = mkexp($1, BINOP_NOP, NULL); }
-           | single_expr binary_op expression { $$ = mkexp($1, $2, $3);          }
+expression : single_expr                      { $$ = $1; }
+           | single_expr binary_op expression { $$ = mkexp($1, $2, $3); }
            ;
 
 literal : TK_INT_LITERAL    { $$ = $1; }

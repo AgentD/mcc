@@ -9,9 +9,8 @@
 
 typedef union {
 	off_t identifier;
-	single_expr_t *sexp;
 	expression_t *exp;
-	E_BINOP binop;
+	E_SINGLE_EXPR binop;
 	E_UNARY unop;
 	literal_t lit;
 	arg_t *args;
