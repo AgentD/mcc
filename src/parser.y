@@ -64,10 +64,11 @@ void yyerror(yyscan_t *scanner, expression_t **result, const char *yymsgp);
 
 
 
-%type <binop> binary_op
-
 %type <exp> expression
 %type <exp> single_expr
+%type <exp> mulexpr
+%type <exp> addexpr
+%type <exp> cmpexpr
 %type <lit> literal
 %type <unop> unary_op
 %type <args> arguments
@@ -83,18 +84,14 @@ unary_op  : TK_MINUS    { $$ = UNARY_NEG; }
           | TK_NOT      { $$ = UNARY_INV; }
           ;
 
-binary_op : TK_PLUS     { $$ = BINOP_ADD; }
-          | TK_MINUS    { $$ = BINOP_SUB; }
-          | TK_ASTERISK { $$ = BINOP_MUL; }
-          | TK_SLASH    { $$ = BINOP_DIV; }
-          | TK_LESS     { $$ = BINOP_LESS; }
-          | TK_GREATER  { $$ = BINOP_GREATER; }
-          | TK_LEQ      { $$ = BINOP_LEQ; }
-          | TK_GEQ      { $$ = BINOP_GEQ; }
-          | TK_ORL      { $$ = BINOP_ORL; }
-          | TK_ANL      { $$ = BINOP_ANL; }
-          | TK_EQU      { $$ = BINOP_EQU; }
-          | TK_NEQ      { $$ = BINOP_NEQU; }
+literal : TK_INT_LITERAL    { $$ = $1; }
+        | TK_FLOAT_LITERAL  { $$ = $1; }
+        | TK_BOOL_LITERAL   { $$ = $1; }
+        | TK_STRING_LITERAL { $$ = $1; }
+        ;
+
+arguments : expression                    { $$ = mkarg($1, NULL); }
+          | expression TK_COMMA arguments { $$ = mkarg($1, $3); }
           ;
 
 single_expr : literal                             { $$ = sex_literal($1); }
@@ -106,19 +103,29 @@ single_expr : literal                             { $$ = sex_literal($1); }
             | TK_IDENTIFIER TK_PAR_OPEN arguments TK_PAR_CLOSE  { $$ = sex_call($1, $3); }
             ;
 
-arguments : expression                    { $$ = mkarg($1, NULL); }
-          | expression TK_COMMA arguments { $$ = mkarg($1, $3); }
-          ;
-
-expression : single_expr                      { $$ = $1; }
-           | single_expr binary_op expression { $$ = mkexp($1, $2, $3); }
-           ;
-
-literal : TK_INT_LITERAL    { $$ = $1; }
-        | TK_FLOAT_LITERAL  { $$ = $1; }
-        | TK_BOOL_LITERAL   { $$ = $1; }
-        | TK_STRING_LITERAL { $$ = $1; }
+mulexpr : single_expr                     { $$ = $1; }
+        | mulexpr TK_ASTERISK single_expr { $$ = mkexp($1, BINOP_MUL, $3); }
+        | mulexpr TK_SLASH single_expr    { $$ = mkexp($1, BINOP_DIV, $3); }
         ;
+
+addexpr : mulexpr                         { $$ = $1; }
+        | addexpr TK_PLUS mulexpr         { $$ = mkexp($1, BINOP_ADD, $3); }
+        | addexpr TK_MINUS mulexpr        { $$ = mkexp($1, BINOP_SUB, $3); }
+        ;
+
+cmpexpr : addexpr                         { $$ = $1; }
+        | cmpexpr TK_GREATER addexpr      { $$ = mkexp($1, BINOP_GREATER, $3); }
+        | cmpexpr TK_LESS addexpr         { $$ = mkexp($1, BINOP_LESS, $3); }
+        | cmpexpr TK_GEQ addexpr          { $$ = mkexp($1, BINOP_GEQ, $3); }
+        | cmpexpr TK_LEQ addexpr          { $$ = mkexp($1, BINOP_LEQ, $3); }
+        | cmpexpr TK_EQU addexpr          { $$ = mkexp($1, BINOP_EQU, $3); }
+        | cmpexpr TK_NEQ addexpr          { $$ = mkexp($1, BINOP_NEQU, $3); }
+        ;
+
+expression : cmpexpr                      { $$ = $1; }
+           | expression TK_ORL cmpexpr    { $$ = mkexp($1, BINOP_ORL, $3); }
+           | expression TK_ANL cmpexpr    { $$ = mkexp($1, BINOP_ANL, $3); }
+           ;
 
 %%
 #include <assert.h>
