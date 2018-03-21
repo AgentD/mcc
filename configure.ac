@@ -10,4 +10,14 @@ AM_PROG_LEX
 AC_PROG_YACC
 LT_INIT()
 
+AC_ARG_ENABLE([install-tests],
+	[AS_HELP_STRING([--enable-install-tests],
+			[Install unit test programs])],
+	[case "${enableval}" in
+	yes) AM_CONDITIONAL([INSTALL_TESTS], [true]) ;;
+	no)  AM_CONDITIONAL([INSTALL_TESTS], [false]) ;;
+	*) AC_MSG_ERROR([bad value ${enableval} for --enable-install-tests]) ;;
+	esac],
+	[AM_CONDITIONAL([INSTALL_TESTS], [false])])
+
 AC_OUTPUT([Makefile])

@@ -1,0 +1,17 @@
+test_parser_SOURCES = test/parser.c
+test_parser_LDADD = libmcc.la
+
+test_unary_minus_SOURCES = test/unary_minus.c test/test.h
+test_unary_minus_LDADD = libmcc.la
+
+test_minus_assoc_SOURCES = test/unary_minus.c test/test.h
+test_minus_assoc_LDADD = libmcc.la
+
+TESTPROGS = test_parser test_unary_minus test_minus_assoc
+
+check_PROGRAMS += $(TESTPROGS)
+TESTS += $(TESTPROGS)
+
+if INSTALL_TESTS
+bin_PROGRAMS += $(TESTPROGS)
+endif

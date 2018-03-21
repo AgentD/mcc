@@ -22,12 +22,6 @@ mcc2dot_SOURCES = tools/mcc2dot.c
 mcc2dot_LDADD = libmcc.la
 
 bin_PROGRAMS += mcc2dot
-
-test_parser_SOURCES = test/parser.c
-test_parser_LDADD = libmcc.la
-
-TESTPROGS = test_parser
-
 lib_LTLIBRARIES += libmcc.la
-check_PROGRAMS += $(TESTPROGS)
-TESTS += $(TESTPROGS)
+
+include test/Makemodule.am
