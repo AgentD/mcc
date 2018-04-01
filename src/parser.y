@@ -3,13 +3,13 @@
 %define parse.error verbose
 
 %lex-param {void *scanner}
-%parse-param {void *scanner} {expression_t** result}
+%parse-param {void *scanner} {statement_t** result}
 
 
 %code requires {
 #include "mcc.h"
 
-void yyerror(yyscan_t *scanner, expression_t **result, const char *yymsgp);
+void yyerror(yyscan_t *scanner, statement_t **result, const char *yymsgp);
 }
 
 %{
@@ -73,11 +73,17 @@ void yyerror(yyscan_t *scanner, expression_t **result, const char *yymsgp);
 %type <unop> unary_op
 %type <args> arguments
 
+%type <exp> parexpr
+%type <stmt> if_stmt while_stmt ret_stmt compound_stmt statement stmt_seq
+%type <stmt> assignment
+%type <type> type
+%type <decl> declaration
+
 %start toplevel
 
 %%
 
-toplevel : expression { *result = $1; }
+toplevel : statement { *result = $1; }
          ;
 
 unary_op  : TK_MINUS    { $$ = UNARY_NEG; }
@@ -127,10 +133,76 @@ expression : cmpexpr                      { $$ = $1; }
            | expression TK_ANL cmpexpr    { $$ = mkexp($1, BINOP_ANL, $3); }
            ;
 
+
+
+parexpr          : TK_PAR_OPEN expression TK_PAR_CLOSE { $$ = $2; }
+
+if_stmt          : KW_IF parexpr statement                   { $$ = stmt_branch($2, $3, NULL); }
+                 | KW_IF parexpr statement KW_ELSE statement { $$ = stmt_branch($2, $3, $5); }
+                 ;
+
+while_stmt       : KW_WHILE parexpr statement                { $$ = stmt_while($2, $3); }
+                 ;
+
+ret_stmt         : KW_RETURN TK_SEMICOLON                    { $$ = stmt_return(NULL); }
+                 | KW_RETURN expression TK_SEMICOLON         { $$ = stmt_return($2); }
+                 ;
+
+stmt_seq         : statement                                 { $$ = $1; }
+                 | stmt_seq statement                        { $2->next = $1; $$ = $2; }
+                 ;
+
+compound_stmt    : TK_BRA_OPEN stmt_seq TK_BRA_CLOSE         { $$ = stmt_compound($2); }
+                 | TK_BRA_OPEN TK_BRA_CLOSE                  { $$ = stmt_compound(NULL); }
+                 ;
+
+statement        : if_stmt                                   { $$ = $1; }
+                 | while_stmt                                { $$ = $1; }
+                 | ret_stmt                                  { $$ = $1; }
+                 | assignment TK_SEMICOLON                   { $$ = $1; }
+                 | compound_stmt                             { $$ = $1; }
+                 | declaration TK_SEMICOLON                  { $$ = stmt_declaration($1); }
+                 | expression TK_SEMICOLON                   { $$ = stmt_expression($1); }
+                 ;
+
+type             : KW_BOOL    { $$ = TYPE_BOOL; }
+                 | KW_INT     { $$ = TYPE_INT; }
+                 | KW_FLOAT   { $$ = TYPE_FLOAT; }
+                 | KW_STRING  { $$ = TYPE_STRING; }
+                 ;
+
+declaration      : type TK_IDENTIFIER                                          { $$ = declaration($1, 1, $2); }
+                 | type TK_BRK_OPEN TK_INT_LITERAL TK_BRK_CLOSE TK_IDENTIFIER  { $$ = declaration($1, $3.value.i, $5); }
+                 ;
+
+assignment       : TK_IDENTIFIER TK_ASSIGN expression                                      { $$ = stmt_assignment($1, NULL, $3); }
+                 | TK_IDENTIFIER TK_BRK_OPEN expression TK_BRK_CLOSE TK_ASSIGN expression  { $$ = stmt_assignment($1, $3, $6); }
+                 ;
+
+/*function_def     : type TK_IDENTIFIER TK_PAR_OPEN TK_PAR_CLOSE compound_stmt
+                 | KW_VOID TK_IDENTIFIER TK_PAR_OPEN TK_PAR_CLOSE compound_stmt
+                 | type TK_IDENTIFIER TK_PAR_OPEN parameters TK_PAR_CLOSE compound_stmt
+                 | KW_VOID TK_IDENTIFIER TK_PAR_OPEN parameters TK_PAR_CLOSE compound_stmt
+                 ;
+
+parameters       = declaration
+                 | declaration TK_COMMA parameters
+                 ;
+
+
+
+function_defs    = function_def
+                 | function_defs function_def
+                 ;
+
+program          = function_defs TK_END
+                 | TK_END
+                 ;*/
+
 %%
 #include <assert.h>
 
-void yyerror(yyscan_t *scanner, expression_t **result, const char *yymsgp)
+void yyerror(yyscan_t *scanner, statement_t **result, const char *yymsgp)
 {
 	(void)scanner; (void)result; (void)yymsgp;
 }
@@ -148,7 +220,7 @@ parser_result_t parse_file(FILE *input)
 	yylex_init_extra(&result.program, &scanner);
 	yyset_in(input, scanner);
 
-	if (yyparse(scanner, &result.expression) != 0) {
+	if (yyparse(scanner, &result.statement) != 0) {
 		result.status = PARSER_STATUS_UNKNOWN_ERROR;
 	}
 

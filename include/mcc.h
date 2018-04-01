@@ -13,7 +13,7 @@ typedef enum {
 
 typedef struct {
 	E_PARSER_STATUS status;
-	expression_t *expression;
+	statement_t *statement;
 	program_t program;
 } parser_result_t;
 

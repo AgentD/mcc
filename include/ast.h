@@ -11,19 +11,17 @@
 
 typedef struct {
 	E_TYPE type;
-	unsigned int array_size;
+	int array_size;
 	off_t identifier;
 } decl_t;
+
+decl_t *declaration(E_TYPE type, int size, off_t identifier);
+
+void declaration_free(decl_t *d);
 
 /******************************** statements ********************************/
 
 typedef struct statement_t statement_t;
-typedef struct statement_ll_node_t statement_ll_node_t;
-
-struct statement_ll_node_t {
-	statement_t *stmt;
-	statement_ll_node_t *next;
-};
 
 typedef enum {
 	STMT_IF,
@@ -37,6 +35,7 @@ typedef enum {
 
 struct statement_t {
 	E_STATEMENT type;
+	statement_t *next;
 
 	union {
 		struct {
@@ -55,7 +54,7 @@ struct statement_t {
 		} ret;
 
 		struct {
-			statement_ll_node_t *list;
+			statement_t *head;
 		} compound;
 
 		struct {
@@ -73,6 +72,24 @@ struct statement_t {
 		} expr;
 	} st;
 };
+
+statement_t *stmt_branch(expression_t *cond, statement_t *exec_true,
+			 statement_t *exec_false);
+
+statement_t *stmt_while(expression_t *cond, statement_t *body);
+
+statement_t *stmt_return(expression_t *exp);
+
+statement_t *stmt_compound(statement_t *list);
+
+statement_t *stmt_expression(expression_t *expr);
+
+statement_t *stmt_declaration(decl_t *decl);
+
+statement_t *stmt_assignment(off_t identifier, expression_t *array_index,
+			     expression_t *value);
+
+void stmt_free(statement_t *stmt);
 
 /****************************************************************************/
 
