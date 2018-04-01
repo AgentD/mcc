@@ -8,19 +8,7 @@
 
 static void gen_name(const void *ptr, char *buffer)
 {
-	char *cptr;
-
-	sprintf(buffer, "%p", ptr);
-
-	if (buffer[0] == '0' && (buffer[1] == 'x' || buffer[1] == 'X'))
-		memmove(buffer, buffer + 2, strlen(buffer + 2) + 1);
-
-	for (cptr = buffer; *cptr != '\0'; ++cptr) {
-		if (isdigit(*cptr))
-			*cptr = 'F' + (*cptr - '0');
-		if (islower(*cptr))
-			*cptr = toupper(*cptr);
-	}
+	sprintf(buffer, "A%016lX", (unsigned long)ptr);
 }
 
 static void print_arrow(const void *src, const void *dst, const char *label)
