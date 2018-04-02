@@ -3,13 +3,13 @@
 %define parse.error verbose
 
 %lex-param {void *scanner}
-%parse-param {void *scanner} {statement_t** result}
+%parse-param {void *scanner} {function_def_t** result}
 
 
 %code requires {
 #include "mcc.h"
 
-void yyerror(yyscan_t *scanner, statement_t **result, const char *yymsgp);
+void yyerror(yyscan_t *scanner, function_def_t **result, const char *yymsgp);
 }
 
 %{
@@ -77,13 +77,14 @@ void yyerror(yyscan_t *scanner, statement_t **result, const char *yymsgp);
 %type <stmt> if_stmt while_stmt ret_stmt compound_stmt statement stmt_seq
 %type <stmt> assignment
 %type <type> type
-%type <decl> declaration
+%type <decl> declaration parameters
+%type <fun> function_def
 
 %start toplevel
 
 %%
 
-toplevel : statement { *result = $1; }
+toplevel : function_def { *result = $1; }
          ;
 
 unary_op  : TK_MINUS    { $$ = UNARY_NEG; }
@@ -179,19 +180,17 @@ assignment       : TK_IDENTIFIER TK_ASSIGN expression                           
                  | TK_IDENTIFIER TK_BRK_OPEN expression TK_BRK_CLOSE TK_ASSIGN expression  { $$ = stmt_assignment($1, $3, $6); }
                  ;
 
-/*function_def     : type TK_IDENTIFIER TK_PAR_OPEN TK_PAR_CLOSE compound_stmt
-                 | KW_VOID TK_IDENTIFIER TK_PAR_OPEN TK_PAR_CLOSE compound_stmt
-                 | type TK_IDENTIFIER TK_PAR_OPEN parameters TK_PAR_CLOSE compound_stmt
-                 | KW_VOID TK_IDENTIFIER TK_PAR_OPEN parameters TK_PAR_CLOSE compound_stmt
+function_def     : type TK_IDENTIFIER TK_PAR_OPEN TK_PAR_CLOSE compound_stmt               { $$ = function($1, $2, NULL, $5); }
+                 | KW_VOID TK_IDENTIFIER TK_PAR_OPEN TK_PAR_CLOSE compound_stmt            { $$ = function(TYPE_VOID, $2, NULL, $5); }
+                 | type TK_IDENTIFIER TK_PAR_OPEN parameters TK_PAR_CLOSE compound_stmt    { $$ = function($1, $2, $4, $6); }
+                 | KW_VOID TK_IDENTIFIER TK_PAR_OPEN parameters TK_PAR_CLOSE compound_stmt { $$ = function(TYPE_VOID, $2, $4, $6); }
                  ;
 
-parameters       = declaration
-                 | declaration TK_COMMA parameters
+parameters       : declaration                      { $$ = $1; }
+                 | parameters TK_COMMA declaration  { $3->next = $1; $$ = $3; }
                  ;
 
-
-
-function_defs    = function_def
+/*function_defs    = function_def
                  | function_defs function_def
                  ;
 
@@ -202,7 +201,7 @@ program          = function_defs TK_END
 %%
 #include <assert.h>
 
-void yyerror(yyscan_t *scanner, statement_t **result, const char *yymsgp)
+void yyerror(yyscan_t *scanner, function_def_t **result, const char *yymsgp)
 {
 	(void)scanner; (void)result; (void)yymsgp;
 }
@@ -220,7 +219,7 @@ parser_result_t parse_file(FILE *input)
 	yylex_init_extra(&result.program, &scanner);
 	yyset_in(input, scanner);
 
-	if (yyparse(scanner, &result.statement) != 0) {
+	if (yyparse(scanner, &result.function) != 0) {
 		result.status = PARSER_STATUS_UNKNOWN_ERROR;
 	}
 

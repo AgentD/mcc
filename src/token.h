@@ -16,6 +16,7 @@ typedef union {
 	arg_t *args;
 	decl_t *decl;
 	statement_t *stmt;
+	function_def_t *fun;
 } token_t;
 
 #endif /* TOKEN_H */

@@ -9,10 +9,12 @@
 #include "literal.h"
 #include "expr.h"
 
-typedef struct {
+typedef struct decl_t {
 	E_TYPE type;
 	int array_size;
 	off_t identifier;
+
+	struct decl_t *next;
 } decl_t;
 
 decl_t *declaration(E_TYPE type, int size, off_t identifier);
@@ -93,24 +95,23 @@ void stmt_free(statement_t *stmt);
 
 /****************************************************************************/
 
-typedef struct param_t param_t;
 typedef struct function_def_t function_def_t;
 typedef struct program_t program_t;
-
-struct param_t {
-	decl_t *decl;
-	param_t *next;
-};
 
 struct function_def_t {
 	E_TYPE type;
 
 	off_t identifier;
-	param_t *parameters;
+	decl_t *parameters;
 	statement_t *body;
 
 	function_def_t *next;
 };
+
+function_def_t *function(E_TYPE type, off_t identifier,
+			 decl_t *parameters, statement_t *body);
+
+void function_free(function_def_t *f);
 
 struct program_t {
 	function_def_t *functions;

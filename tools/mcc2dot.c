@@ -258,7 +258,47 @@ static void stmt_to_dot(program_t *prog, statement_t *stmt)
 		}
 		break;
 	}
+}
 
+void fun_to_dot(program_t *prog, function_def_t *def)
+{
+	const char *tpstr = "(unknown)";
+	const char *name;
+	char boxname[20];
+	decl_t *d, *prev;
+
+	switch (def->type) {
+	case TYPE_VOID:   tpstr = "void"; break;
+	case TYPE_BOOL:   tpstr = "bool"; break;
+	case TYPE_INT:    tpstr = "int"; break;
+	case TYPE_FLOAT:  tpstr = "float"; break;
+	case TYPE_STRING: tpstr = "string"; break;
+	}
+
+	name = str_tab_resolve(&prog->identifiers, def->identifier);
+
+	gen_name(def, boxname);
+	printf("\t%s [shape=box, label=\"function %s, type %s\"];\n",
+		boxname, name, tpstr);
+
+	if (def->parameters) {
+		print_arrow(def, def->parameters, "parameters");
+
+		d = def->parameters;
+		prev = NULL;
+
+		while (d != NULL) {
+			decl_to_dot(prog, d);
+			if (prev)
+				print_arrow(prev, d, "next");
+
+			prev = d;
+			d = d->next;
+		}
+	}
+
+	stmt_to_dot(prog, def->body);
+	print_arrow(def, def->body, "body");
 }
 
 int main(int argc, char **argv)
@@ -282,10 +322,10 @@ int main(int argc, char **argv)
 	}
 
 	fputs("digraph mcc2dot {\n", stdout);
-	stmt_to_dot(&result.program, result.statement);
+	fun_to_dot(&result.program, result.function);
 	fputs("}\n", stdout);
 
-	stmt_free(result.statement);
+	function_free(result.function);
 	mcc_cleanup_program(&result.program);
 	return EXIT_SUCCESS;
 }
