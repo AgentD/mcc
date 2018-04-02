@@ -15,10 +15,10 @@ void mcc_cleanup_program(program_t *prog)
 		f = prog->functions;
 		prog->functions = f->next;
 
-		function_free(f);
+		mcc_function_free(f);
 	}
 
-	str_tab_cleanup(&prog->strings);
-	str_tab_cleanup(&prog->identifiers);
+	mcc_str_tab_cleanup(&prog->strings);
+	mcc_str_tab_cleanup(&prog->identifiers);
 	memset(prog, 0, sizeof(*prog));
 }

@@ -2,7 +2,7 @@
 
 #include "decl.h"
 
-decl_t *declaration(E_TYPE type, int size, off_t identifier)
+decl_t *mcc_declaration(E_TYPE type, int size, off_t identifier)
 {
 	decl_t *d = calloc(1, sizeof(*d));
 
@@ -14,7 +14,7 @@ decl_t *declaration(E_TYPE type, int size, off_t identifier)
 	return d;
 }
 
-void declaration_free(decl_t *d)
+void mcc_declaration_free(decl_t *d)
 {
 	free(d);
 }

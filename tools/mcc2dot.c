@@ -99,13 +99,14 @@ static void sex_to_dot(program_t *prog, expression_t *sex)
 		print_label(sex, buffer);
 		break;
 	case SEX_IDENTIFIER:
-		str = str_tab_resolve(&prog->identifiers, sex->u.identifier);
+		str = mcc_str_tab_resolve(&prog->identifiers,
+					  sex->u.identifier);
 		print_label(sex, str);
 		break;
 	case SEX_ARRAY_INDEX:
 		ptr = &sex->u.array_idx.identifier;
-		str = str_tab_resolve(&prog->identifiers,
-				      sex->u.array_idx.identifier);
+		str = mcc_str_tab_resolve(&prog->identifiers,
+					  sex->u.array_idx.identifier);
 
 		print_label(sex, "array access");
 		print_label(ptr, str);
@@ -116,8 +117,8 @@ static void sex_to_dot(program_t *prog, expression_t *sex)
 		break;
 	case SEX_CALL:
 		ptr = &sex->u.array_idx.identifier;
-		str = str_tab_resolve(&prog->identifiers,
-				      sex->u.call.identifier);
+		str = mcc_str_tab_resolve(&prog->identifiers,
+					  sex->u.call.identifier);
 
 		print_label(sex, "call");
 		print_label(ptr, str);
@@ -175,7 +176,7 @@ static void decl_to_dot(program_t *prog, decl_t *decl)
 	char boxname[20];
 
 	tpstr = type_to_str(decl->type);
-	name = str_tab_resolve(&prog->identifiers, decl->identifier);
+	name = mcc_str_tab_resolve(&prog->identifiers, decl->identifier);
 
 	gen_name(decl, boxname);
 	printf("\t%s [shape=box, label=\"declare %s, type %s, count %d\"];\n",
@@ -229,8 +230,8 @@ static void stmt_to_dot(program_t *prog, statement_t *stmt)
 		print_box(stmt, "ASSIGN");
 
 		ptr = &(stmt->st.assignment.identifier);
-		str = str_tab_resolve(&prog->identifiers,
-				      stmt->st.assignment.identifier);
+		str = mcc_str_tab_resolve(&prog->identifiers,
+					  stmt->st.assignment.identifier);
 		print_label(ptr, str);
 		print_arrow(stmt, ptr, "LHS");
 
@@ -272,7 +273,7 @@ void fun_to_dot(program_t *prog, function_def_t *def)
 	decl_t *d, *prev;
 
 	tpstr = type_to_str(def->type);
-	name = str_tab_resolve(&prog->identifiers, def->identifier);
+	name = mcc_str_tab_resolve(&prog->identifiers, def->identifier);
 
 	gen_name(def, boxname);
 	printf("\t%s [shape=box, label=\"function %s, type %s\"];\n",
@@ -312,7 +313,7 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	result = parse_file(stdin);
+	result = mcc_parse_file(stdin);
 
 	if (result.status != PARSER_STATUS_OK) {
 		fputs("Error parsing input\n", stderr);

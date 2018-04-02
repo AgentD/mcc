@@ -3,8 +3,8 @@
 #include "ast.h"
 
 
-function_def_t *function(E_TYPE type, off_t identifier,
-			 decl_t *parameters, statement_t *body)
+function_def_t *mcc_function(E_TYPE type, off_t identifier, decl_t *parameters,
+			     statement_t *body)
 {
 	function_def_t *f = calloc(1, sizeof(*f));
 	decl_t *prev, *current, *next;
@@ -28,7 +28,7 @@ function_def_t *function(E_TYPE type, off_t identifier,
 	return f;
 }
 
-void function_free(function_def_t *f)
+void mcc_function_free(function_def_t *f)
 {
 	decl_t *d;
 
@@ -36,9 +36,9 @@ void function_free(function_def_t *f)
 		d = f->parameters;
 		f->parameters = d->next;
 
-		declaration_free(d);
+		mcc_declaration_free(d);
 	}
 
-	stmt_free(f->body);
+	mcc_stmt_free(f->body);
 	free(f);
 }

@@ -39,10 +39,10 @@ void mcc_init_program(program_t *prog);
 
 void mcc_cleanup_program(program_t *prog);
 
-function_def_t *function(E_TYPE type, off_t identifier,
-			 decl_t *parameters, statement_t *body);
+function_def_t *mcc_function(E_TYPE type, off_t identifier,
+			     decl_t *parameters, statement_t *body);
 
-void function_free(function_def_t *f);
+void mcc_function_free(function_def_t *f);
 
 #ifdef __cplusplus
 }

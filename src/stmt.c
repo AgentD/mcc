@@ -3,8 +3,8 @@
 #include "statement.h"
 
 
-statement_t *stmt_branch(expression_t *cond, statement_t *exec_true,
-			 statement_t *exec_false)
+statement_t *mcc_stmt_branch(expression_t *cond, statement_t *exec_true,
+			     statement_t *exec_false)
 {
 	statement_t *s = calloc(1, sizeof(*s));
 
@@ -17,7 +17,7 @@ statement_t *stmt_branch(expression_t *cond, statement_t *exec_true,
 	return s;
 }
 
-statement_t *stmt_while(expression_t *cond, statement_t *body)
+statement_t *mcc_stmt_while(expression_t *cond, statement_t *body)
 {
 	statement_t *s = calloc(1, sizeof(*s));
 
@@ -29,7 +29,7 @@ statement_t *stmt_while(expression_t *cond, statement_t *body)
 	return s;
 }
 
-statement_t *stmt_return(expression_t *exp)
+statement_t *mcc_stmt_return(expression_t *exp)
 {
 	statement_t *s = calloc(1, sizeof(*s));
 
@@ -40,7 +40,7 @@ statement_t *stmt_return(expression_t *exp)
 	return s;
 }
 
-statement_t *stmt_compound(statement_t *list)
+statement_t *mcc_stmt_compound(statement_t *list)
 {
 	statement_t *s = calloc(1, sizeof(*s));
 	statement_t *prev, *current, *next;
@@ -62,7 +62,7 @@ statement_t *stmt_compound(statement_t *list)
 	return s;
 }
 
-statement_t *stmt_expression(expression_t *expr)
+statement_t *mcc_stmt_expression(expression_t *expr)
 {
 	statement_t *s = calloc(1, sizeof(*s));
 
@@ -73,7 +73,7 @@ statement_t *stmt_expression(expression_t *expr)
 	return s;
 }
 
-statement_t *stmt_declaration(decl_t *decl)
+statement_t *mcc_stmt_declaration(decl_t *decl)
 {
 	statement_t *s = calloc(1, sizeof(*s));
 
@@ -84,8 +84,8 @@ statement_t *stmt_declaration(decl_t *decl)
 	return s;
 }
 
-statement_t *stmt_assignment(off_t identifier, expression_t *array_index,
-			     expression_t *value)
+statement_t *mcc_stmt_assignment(off_t identifier, expression_t *array_index,
+				 expression_t *value)
 {
 	statement_t *s = calloc(1, sizeof(*s));
 
@@ -98,7 +98,7 @@ statement_t *stmt_assignment(off_t identifier, expression_t *array_index,
 	return s;
 }
 
-void stmt_free(statement_t *stmt)
+void mcc_stmt_free(statement_t *stmt)
 {
 	statement_t *n;
 
@@ -107,33 +107,33 @@ void stmt_free(statement_t *stmt)
 
 	switch (stmt->type) {
 	case STMT_IF:
-		expr_free(stmt->st.branch.cond);
-		stmt_free(stmt->st.branch.exec_true);
-		stmt_free(stmt->st.branch.exec_false);
+		mcc_expr_free(stmt->st.branch.cond);
+		mcc_stmt_free(stmt->st.branch.exec_true);
+		mcc_stmt_free(stmt->st.branch.exec_false);
 		break;
 	case STMT_WHILE:
-		expr_free(stmt->st.wloop.cond);
-		stmt_free(stmt->st.wloop.body);
+		mcc_expr_free(stmt->st.wloop.cond);
+		mcc_stmt_free(stmt->st.wloop.body);
 		break;
 	case STMT_RET:
-		expr_free(stmt->st.ret);
+		mcc_expr_free(stmt->st.ret);
 		break;
 	case STMT_DECL:
-		declaration_free(stmt->st.decl);
+		mcc_declaration_free(stmt->st.decl);
 		break;
 	case STMT_ASSIGN:
-		expr_free(stmt->st.assignment.array_index);
-		expr_free(stmt->st.assignment.value);
+		mcc_expr_free(stmt->st.assignment.array_index);
+		mcc_expr_free(stmt->st.assignment.value);
 		break;
 	case STMT_EXPR:
-		expr_free(stmt->st.expr);
+		mcc_expr_free(stmt->st.expr);
 		break;
 	case STMT_COMPOUND:
 		while (stmt->st.compound_head != NULL) {
 			n = stmt->st.compound_head;
 			stmt->st.compound_head = n->next;
 
-			stmt_free(n);
+			mcc_stmt_free(n);
 		}
 		break;
 	}

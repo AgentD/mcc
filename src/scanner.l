@@ -23,9 +23,6 @@ float_literal [0-9]+\.[0-9]+
 
 %%
 
-"true"            { yylval->lit = literal_bool(true); return TK_BOOL_LITERAL; }
-"false"           { yylval->lit = literal_bool(false); return TK_BOOL_LITERAL; }
-
 "bool"            { return KW_BOOL; }
 "int"             { return KW_INT; }
 "float"           { return KW_FLOAT; }
@@ -59,10 +56,20 @@ float_literal [0-9]+\.[0-9]+
 ","               { return TK_COMMA; }
 ";"               { return TK_SEMICOLON; }
 
+"true"            {
+	yylval->lit = mcc_literal_bool(true);
+	return TK_BOOL_LITERAL;
+}
+
+"false"           {
+	yylval->lit = mcc_literal_bool(false);
+	return TK_BOOL_LITERAL;
+}
+
 {identifier}      {
 	program_t *p = yyextra;
 
-	yylval->identifier = str_tab_add(&p->identifiers, yytext);
+	yylval->identifier = mcc_str_tab_add(&p->identifiers, yytext);
 	/* TODO: handle allocation error */
 
 	return TK_IDENTIFIER;
@@ -71,19 +78,19 @@ float_literal [0-9]+\.[0-9]+
 {str_literal}     {
 	program_t *p = yyextra;
 
-	yylval->lit = literal_string(str_tab_add(&p->strings, yytext));
+	yylval->lit = mcc_literal_string(mcc_str_tab_add(&p->strings, yytext));
 	/* TODO: handle allocation error */
 
 	return TK_STRING_LITERAL;
 }
 
 {int_literal}     {
-	yylval->lit = literal_int(strtol(yytext, NULL, 10));
+	yylval->lit = mcc_literal_int(strtol(yytext, NULL, 10));
 	return TK_INT_LITERAL;
 }
 
 {float_literal}   {
-	yylval->lit = literal_float(strtof(yytext, NULL));
+	yylval->lit = mcc_literal_float(strtof(yytext, NULL));
 	return TK_FLOAT_LITERAL;
 }
 

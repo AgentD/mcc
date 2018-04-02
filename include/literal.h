@@ -36,28 +36,28 @@ typedef struct {
 	} value;
 } literal_t;
 
-static FORCE_INLINE literal_t literal_bool(bool value)
+static FORCE_INLINE literal_t mcc_literal_bool(bool value)
 {
 	literal_t l = { .type = TYPE_BOOL, .value = { .b = value } };
 
 	return l;
 }
 
-static FORCE_INLINE literal_t literal_int(int value)
+static FORCE_INLINE literal_t mcc_literal_int(int value)
 {
 	literal_t l = { .type = TYPE_INT, .value = { .i = value } };
 
 	return l;
 }
 
-static FORCE_INLINE literal_t literal_float(float value)
+static FORCE_INLINE literal_t mcc_literal_float(float value)
 {
 	literal_t l = { .type = TYPE_FLOAT, .value = { .f = value } };
 
 	return l;
 }
 
-static FORCE_INLINE literal_t literal_string(off_t value)
+static FORCE_INLINE literal_t mcc_literal_string(off_t value)
 {
 	literal_t l = { .type = TYPE_STRING, .value = { .str = value } };
 

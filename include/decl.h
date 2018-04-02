@@ -17,9 +17,9 @@ typedef struct decl_t {
 extern "C" {
 #endif
 
-decl_t *declaration(E_TYPE type, int size, off_t identifier);
+decl_t *mcc_declaration(E_TYPE type, int size, off_t identifier);
 
-void declaration_free(decl_t *d);
+void mcc_declaration_free(decl_t *d);
 
 #ifdef __cplusplus
 }

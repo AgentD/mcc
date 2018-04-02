@@ -20,8 +20,8 @@ typedef struct {
 extern "C" {
 #endif
 
-parser_result_t parse_file(FILE *input);
-parser_result_t parse_string(const char *input);
+parser_result_t mcc_parse_file(FILE *input);
+parser_result_t mcc_parse_string(const char *input);
 
 #ifdef __cplusplus
 }

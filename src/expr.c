@@ -2,7 +2,7 @@
 
 #include "expr.h"
 
-expression_t *sex_literal(literal_t lit)
+expression_t *mcc_sex_literal(literal_t lit)
 {
 	expression_t *s = calloc(1, sizeof(*s));
 
@@ -11,7 +11,7 @@ expression_t *sex_literal(literal_t lit)
 	return s;
 }
 
-expression_t *sex_identifier(off_t identifier)
+expression_t *mcc_sex_identifier(off_t identifier)
 {
 	expression_t *s = calloc(1, sizeof(*s));
 
@@ -20,7 +20,7 @@ expression_t *sex_identifier(off_t identifier)
 	return s;
 }
 
-expression_t *sex_unary(E_UNARY op, expression_t *exp)
+expression_t *mcc_sex_unary(E_UNARY op, expression_t *exp)
 {
 	expression_t *s = calloc(1, sizeof(*s));
 
@@ -30,7 +30,7 @@ expression_t *sex_unary(E_UNARY op, expression_t *exp)
 	return s;
 }
 
-expression_t *sex_array_access(off_t identifier, expression_t *index)
+expression_t *mcc_sex_array_access(off_t identifier, expression_t *index)
 {
 	expression_t *s = calloc(1, sizeof(*s));
 
@@ -40,7 +40,7 @@ expression_t *sex_array_access(off_t identifier, expression_t *index)
 	return s;
 }
 
-expression_t *sex_call(off_t identifier, arg_t *args)
+expression_t *mcc_sex_call(off_t identifier, arg_t *args)
 {
 	expression_t *s = calloc(1, sizeof(*s));
 
@@ -50,7 +50,7 @@ expression_t *sex_call(off_t identifier, arg_t *args)
 	return s;
 }
 
-arg_t *mkarg(expression_t *expr, arg_t *rhs)
+arg_t *mcc_mkarg(expression_t *expr, arg_t *rhs)
 {
 	arg_t *arg = calloc(1, sizeof(*arg));
 
@@ -59,7 +59,8 @@ arg_t *mkarg(expression_t *expr, arg_t *rhs)
 	return arg;
 }
 
-expression_t *mkexp(expression_t *left, E_EXPR_TYPE type, expression_t *right)
+expression_t *mcc_mkexp(expression_t *left, E_EXPR_TYPE type,
+			expression_t *right)
 {
 	expression_t *e = calloc(1, sizeof(*e));
 
@@ -69,7 +70,7 @@ expression_t *mkexp(expression_t *left, E_EXPR_TYPE type, expression_t *right)
 	return e;
 }
 
-void expr_free(expression_t *sex)
+void mcc_expr_free(expression_t *sex)
 {
 	arg_t *arg;
 
@@ -79,23 +80,23 @@ void expr_free(expression_t *sex)
 		case SEX_IDENTIFIER:
 			break;
 		case SEX_ARRAY_INDEX:
-			expr_free(sex->u.array_idx.index);
+			mcc_expr_free(sex->u.array_idx.index);
 			break;
 		case SEX_CALL:
 			while (sex->u.call.args != NULL) {
 				arg = sex->u.call.args;
 				sex->u.call.args = arg->next;
 
-				expr_free(arg->expr);
+				mcc_expr_free(arg->expr);
 				free(arg);
 			}
 			break;
 		case SEX_UNARY:
-			expr_free(sex->u.unary.exp);
+			mcc_expr_free(sex->u.unary.exp);
 			break;
 		default:
-			expr_free(sex->u.binary.left);
-			expr_free(sex->u.binary.right);
+			mcc_expr_free(sex->u.binary.left);
+			mcc_expr_free(sex->u.binary.right);
 			break;
 		}
 

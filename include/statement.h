@@ -52,23 +52,23 @@ struct statement_t {
 extern "C" {
 #endif
 
-statement_t *stmt_branch(expression_t *cond, statement_t *exec_true,
-			 statement_t *exec_false);
+statement_t *mcc_stmt_branch(expression_t *cond, statement_t *exec_true,
+			     statement_t *exec_false);
 
-statement_t *stmt_while(expression_t *cond, statement_t *body);
+statement_t *mcc_stmt_while(expression_t *cond, statement_t *body);
 
-statement_t *stmt_return(expression_t *exp);
+statement_t *mcc_stmt_return(expression_t *exp);
 
-statement_t *stmt_compound(statement_t *list);
+statement_t *mcc_stmt_compound(statement_t *list);
 
-statement_t *stmt_expression(expression_t *expr);
+statement_t *mcc_stmt_expression(expression_t *expr);
 
-statement_t *stmt_declaration(decl_t *decl);
+statement_t *mcc_stmt_declaration(decl_t *decl);
 
-statement_t *stmt_assignment(off_t identifier, expression_t *array_index,
-			     expression_t *value);
+statement_t *mcc_stmt_assignment(off_t identifier, expression_t *array_index,
+				 expression_t *value);
 
-void stmt_free(statement_t *stmt);
+void mcc_stmt_free(statement_t *stmt);
 
 #ifdef __cplusplus
 }

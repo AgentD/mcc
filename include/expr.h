@@ -71,17 +71,18 @@ struct expression_t {
 extern "C" {
 #endif
 
-expression_t *sex_literal(literal_t lit);
-expression_t *sex_identifier(off_t identifier);
-expression_t *sex_unary(E_UNARY op, expression_t *exp);
-expression_t *sex_array_access(off_t identifier, expression_t *index);
-expression_t *sex_call(off_t identifier, arg_t *args);
+expression_t *mcc_sex_literal(literal_t lit);
+expression_t *mcc_sex_identifier(off_t identifier);
+expression_t *mcc_sex_unary(E_UNARY op, expression_t *exp);
+expression_t *mcc_sex_array_access(off_t identifier, expression_t *index);
+expression_t *mcc_sex_call(off_t identifier, arg_t *args);
 
-arg_t *mkarg(expression_t *expr, arg_t *rhs);
+arg_t *mcc_mkarg(expression_t *expr, arg_t *rhs);
 
-expression_t *mkexp(expression_t *left, E_EXPR_TYPE type, expression_t *right);
+expression_t *mcc_mkexp(expression_t *left, E_EXPR_TYPE type,
+			expression_t *right);
 
-void expr_free(expression_t *sex);
+void mcc_expr_free(expression_t *sex);
 
 #ifdef __cplusplus
 }
