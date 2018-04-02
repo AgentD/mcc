@@ -35,7 +35,7 @@ statement_t *stmt_return(expression_t *exp)
 
 	if (s != NULL) {
 		s->type = STMT_RET;
-		s->st.ret.ret = exp;
+		s->st.ret = exp;
 	}
 	return s;
 }
@@ -57,7 +57,7 @@ statement_t *stmt_compound(statement_t *list)
 		}
 
 		s->type = STMT_COMPOUND;
-		s->st.compound.head = prev;
+		s->st.compound_head = prev;
 	}
 	return s;
 }
@@ -68,7 +68,7 @@ statement_t *stmt_expression(expression_t *expr)
 
 	if (s != NULL) {
 		s->type = STMT_EXPR;
-		s->st.expr.expr = expr;
+		s->st.expr = expr;
 	}
 	return s;
 }
@@ -79,7 +79,7 @@ statement_t *stmt_declaration(decl_t *decl)
 
 	if (s != NULL) {
 		s->type = STMT_DECL;
-		s->st.decl.decl = decl;
+		s->st.decl = decl;
 	}
 	return s;
 }
@@ -116,22 +116,22 @@ void stmt_free(statement_t *stmt)
 		stmt_free(stmt->st.wloop.body);
 		break;
 	case STMT_RET:
-		expr_free(stmt->st.ret.ret);
+		expr_free(stmt->st.ret);
 		break;
 	case STMT_DECL:
-		declaration_free(stmt->st.decl.decl);
+		declaration_free(stmt->st.decl);
 		break;
 	case STMT_ASSIGN:
 		expr_free(stmt->st.assignment.array_index);
 		expr_free(stmt->st.assignment.value);
 		break;
 	case STMT_EXPR:
-		expr_free(stmt->st.expr.expr);
+		expr_free(stmt->st.expr);
 		break;
 	case STMT_COMPOUND:
-		while (stmt->st.compound.head != NULL) {
-			n = stmt->st.compound.head;
-			stmt->st.compound.head = n->next;
+		while (stmt->st.compound_head != NULL) {
+			n = stmt->st.compound_head;
+			stmt->st.compound_head = n->next;
 
 			stmt_free(n);
 		}

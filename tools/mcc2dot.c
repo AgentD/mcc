@@ -11,6 +11,19 @@ static void gen_name(const void *ptr, char *buffer)
 	sprintf(buffer, "A%016lX", (unsigned long)ptr);
 }
 
+static const char *type_to_str(E_TYPE tp)
+{
+	switch (tp) {
+	case TYPE_VOID:   return "void";
+	case TYPE_BOOL:   return "bool";
+	case TYPE_INT:    return "int";
+	case TYPE_FLOAT:  return "float";
+	case TYPE_STRING: return "string";
+	}
+
+	return "(unknown)";
+}
+
 static void print_arrow(const void *src, const void *dst, const char *label)
 {
 	char name1[20], name2[20];
@@ -158,18 +171,10 @@ binary:
 
 static void decl_to_dot(program_t *prog, decl_t *decl)
 {
-	const char *tpstr = "(unknown)";
-	const char *name;
+	const char *tpstr, *name;
 	char boxname[20];
 
-	switch (decl->type) {
-	case TYPE_VOID:   tpstr = "void"; break;
-	case TYPE_BOOL:   tpstr = "bool"; break;
-	case TYPE_INT:    tpstr = "int"; break;
-	case TYPE_FLOAT:  tpstr = "float"; break;
-	case TYPE_STRING: tpstr = "string"; break;
-	}
-
+	tpstr = type_to_str(decl->type);
 	name = str_tab_resolve(&prog->identifiers, decl->identifier);
 
 	gen_name(decl, boxname);
@@ -210,15 +215,15 @@ static void stmt_to_dot(program_t *prog, statement_t *stmt)
 	case STMT_RET:
 		print_box(stmt, "RETURN");
 
-		if (stmt->st.ret.ret) {
-			sex_to_dot(prog, stmt->st.ret.ret);
-			print_arrow(stmt, stmt->st.ret.ret, NULL);
+		if (stmt->st.ret) {
+			sex_to_dot(prog, stmt->st.ret);
+			print_arrow(stmt, stmt->st.ret, NULL);
 		}
 		break;
 	case STMT_DECL:
 		print_box(stmt, "DECLARE");
-		print_arrow(stmt, stmt->st.decl.decl, "what");
-		decl_to_dot(prog, stmt->st.decl.decl);
+		print_arrow(stmt, stmt->st.decl, "what");
+		decl_to_dot(prog, stmt->st.decl);
 		break;
 	case STMT_ASSIGN:
 		print_box(stmt, "ASSIGN");
@@ -240,14 +245,14 @@ static void stmt_to_dot(program_t *prog, statement_t *stmt)
 		break;
 	case STMT_EXPR:
 		print_box(stmt, "EXPR");
-		sex_to_dot(prog, stmt->st.expr.expr);
-		print_arrow(stmt, stmt->st.expr.expr, NULL);
+		sex_to_dot(prog, stmt->st.expr);
+		print_arrow(stmt, stmt->st.expr, NULL);
 		break;
 	case STMT_COMPOUND:
 		print_box(stmt, "COMPOUND");
 
 		prev = stmt;
-		s = stmt->st.compound.head;
+		s = stmt->st.compound_head;
 
 		while (s != NULL) {
 			stmt_to_dot(prog, s);
@@ -262,19 +267,11 @@ static void stmt_to_dot(program_t *prog, statement_t *stmt)
 
 void fun_to_dot(program_t *prog, function_def_t *def)
 {
-	const char *tpstr = "(unknown)";
-	const char *name;
+	const char *tpstr, *name;
 	char boxname[20];
 	decl_t *d, *prev;
 
-	switch (def->type) {
-	case TYPE_VOID:   tpstr = "void"; break;
-	case TYPE_BOOL:   tpstr = "bool"; break;
-	case TYPE_INT:    tpstr = "int"; break;
-	case TYPE_FLOAT:  tpstr = "float"; break;
-	case TYPE_STRING: tpstr = "string"; break;
-	}
-
+	tpstr = type_to_str(def->type);
 	name = str_tab_resolve(&prog->identifiers, def->identifier);
 
 	gen_name(def, boxname);

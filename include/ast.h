@@ -52,26 +52,18 @@ struct statement_t {
 		} wloop;
 
 		struct {
-			expression_t *ret;
-		} ret;
-
-		struct {
-			statement_t *head;
-		} compound;
-
-		struct {
-			decl_t *decl;
-		} decl;
-
-		struct {
 			off_t identifier;
 			expression_t *array_index;
 			expression_t *value;
 		} assignment;
 
-		struct {
-			expression_t *expr;
-		} expr;
+		expression_t *ret;
+
+		statement_t *compound_head;
+
+		decl_t *decl;
+
+		expression_t *expr;
 	} st;
 };
 
