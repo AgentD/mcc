@@ -78,13 +78,13 @@ void yyerror(yyscan_t *scanner, function_def_t **result, const char *yymsgp);
 %type <stmt> assignment
 %type <type> type
 %type <decl> declaration parameters
-%type <fun> function_def
+%type <fun> function_def function_defs program
 
 %start toplevel
 
 %%
 
-toplevel : function_def { *result = $1; }
+toplevel : program { *result = $1; }
          ;
 
 unary_op  : TK_MINUS    { $$ = UNARY_NEG; }
@@ -137,6 +137,7 @@ expression : cmpexpr                      { $$ = $1; }
 
 
 parexpr          : TK_PAR_OPEN expression TK_PAR_CLOSE { $$ = $2; }
+                 ;
 
 if_stmt          : KW_IF parexpr statement                   { $$ = stmt_branch($2, $3, NULL); }
                  | KW_IF parexpr statement KW_ELSE statement { $$ = stmt_branch($2, $3, $5); }
@@ -190,14 +191,13 @@ parameters       : declaration                      { $$ = $1; }
                  | parameters TK_COMMA declaration  { $3->next = $1; $$ = $3; }
                  ;
 
-/*function_defs    = function_def
-                 | function_defs function_def
+function_defs    : function_def                     { $$ = $1; }
+                 | function_defs function_def       { $2->next = $1; $$ = $2; }
                  ;
 
-program          = function_defs TK_END
-                 | TK_END
-                 ;*/
-
+program          : TK_END                           { $$ = NULL; }
+                 | function_defs TK_END             { $$ = $1; }
+                 ;
 %%
 #include <assert.h>
 
@@ -209,6 +209,7 @@ void yyerror(yyscan_t *scanner, function_def_t **result, const char *yymsgp)
 parser_result_t parse_file(FILE *input)
 {
 	parser_result_t result = { .status = PARSER_STATUS_OK };
+	function_def_t *list, *prev, *current, *next;
 	assert(input);
 
 	yyscan_t scanner;
@@ -219,10 +220,21 @@ parser_result_t parse_file(FILE *input)
 	yylex_init_extra(&result.program, &scanner);
 	yyset_in(input, scanner);
 
-	if (yyparse(scanner, &result.function) != 0) {
+	if (yyparse(scanner, &list) != 0) {
 		result.status = PARSER_STATUS_UNKNOWN_ERROR;
 	}
 
+	prev = next = NULL;
+	current = list;
+
+	while (current != NULL) {
+		next = current->next;
+		current->next = prev;
+		prev = current;
+		current = next;
+	}
+
+	result.program.functions = prev;
 	yylex_destroy(scanner);
 	return result;
 }

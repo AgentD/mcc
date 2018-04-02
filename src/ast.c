@@ -9,6 +9,15 @@ void mcc_init_program(program_t *prog)
 
 void mcc_cleanup_program(program_t *prog)
 {
+	function_def_t *f;
+
+	while (prog->functions != NULL) {
+		f = prog->functions;
+		prog->functions = f->next;
+
+		function_free(f);
+	}
+
 	str_tab_cleanup(&prog->strings);
 	str_tab_cleanup(&prog->identifiers);
 	memset(prog, 0, sizeof(*prog));

@@ -301,6 +301,7 @@ void fun_to_dot(program_t *prog, function_def_t *def)
 int main(int argc, char **argv)
 {
 	parser_result_t result;
+	function_def_t *f;
 	(void)argv;
 
 	if (argc != 1) {
@@ -319,10 +320,16 @@ int main(int argc, char **argv)
 	}
 
 	fputs("digraph mcc2dot {\n", stdout);
-	fun_to_dot(&result.program, result.function);
+
+	for (f = result.program.functions; f != NULL; f = f->next) {
+		fun_to_dot(&result.program, f);
+
+		if (f->next)
+			print_arrow(f, f->next, "next");
+	}
+
 	fputs("}\n", stdout);
 
-	function_free(result.function);
 	mcc_cleanup_program(&result.program);
 	return EXIT_SUCCESS;
 }
