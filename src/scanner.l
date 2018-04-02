@@ -4,6 +4,8 @@
 %option nounput
 %option noyywrap
 %option reentrant
+%option yylineno
+%option bison-locations
 %option extra-type="program_t *"
 
 %{
@@ -14,6 +16,14 @@
 #include <stdlib.h>
 
 #define YYSTYPE token_t
+
+#define YY_USER_ACTION \
+	{\
+		yylloc->first_line = yylineno; \
+	        yylloc->first_column = yycolumn; \
+	        yylloc->last_column = yycolumn + yyleng; \
+	        yylloc->last_line = yylineno; \
+        }
 %}
 
 identifier    [a-zA-Z_][a-zA-Z0-9_]*

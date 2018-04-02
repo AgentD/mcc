@@ -1,6 +1,7 @@
 %define api.pure full
 %define parse.trace
 %define parse.error verbose
+%locations
 
 %lex-param {void *scanner}
 %parse-param {void *scanner} {function_def_t** result}
@@ -8,8 +9,6 @@
 
 %code requires {
 #include "mcc.h"
-
-void yyerror(yyscan_t *scanner, function_def_t **result, const char *yymsgp);
 }
 
 %{
@@ -18,8 +17,12 @@ void yyerror(yyscan_t *scanner, function_def_t **result, const char *yymsgp);
 #include "token.h"
 #define YYSTYPE token_t
 
+#include "parser.h"
 #include "scanner.h"
 #include "ast.h"
+
+void yyerror(YYLTYPE *sloc, yyscan_t *scanner,
+	     function_def_t **result, const char *yymsgp);
 %}
 %token TK_END 0 "end of file"
 
@@ -201,9 +204,10 @@ program          : TK_END                           { $$ = NULL; }
 %%
 #include <assert.h>
 
-void yyerror(yyscan_t *scanner, function_def_t **result, const char *yymsgp)
+void yyerror(YYLTYPE *sloc, yyscan_t *scanner,
+	     function_def_t **result, const char *yymsgp)
 {
-	(void)scanner; (void)result; (void)yymsgp;
+	(void)sloc; (void)scanner; (void)result; (void)yymsgp;
 }
 
 parser_result_t mcc_parse_file(FILE *input)
