@@ -16,7 +16,7 @@
 #define YYSTYPE token_t
 %}
 
-identifier    [a-zA-Z_][a-zA-Z0-9]*
+identifier    [a-zA-Z_][a-zA-Z0-9_]*
 str_literal   \"[^\"]*\"
 int_literal   [0-9]+
 float_literal [0-9]+\.[0-9]+
