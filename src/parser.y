@@ -216,7 +216,6 @@ parser_result_t mcc_parse_file(FILE *input)
 
 	mcc_init_program(&result.program);
 
-	yylex_init(&scanner);
 	yylex_init_extra(&result.program, &scanner);
 	yyset_in(input, scanner);
 
