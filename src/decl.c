@@ -1,6 +1,6 @@
 #include <stdlib.h>
 
-#include "ast.h"
+#include "decl.h"
 
 decl_t *declaration(E_TYPE type, int size, off_t identifier)
 {

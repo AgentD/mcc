@@ -1,6 +1,8 @@
 #ifndef MCC_LITERAL_H
 #define MCC_LITERAL_H
 
+#include <stdbool.h>
+
 #ifndef FORCE_INLINE
 	#ifdef _MSC_VER
 		#define FORCE_INLINE __forceinline

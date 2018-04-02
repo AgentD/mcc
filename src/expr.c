@@ -1,6 +1,6 @@
 #include <stdlib.h>
 
-#include "ast.h"
+#include "expr.h"
 
 expression_t *sex_literal(literal_t lit)
 {
