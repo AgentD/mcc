@@ -209,7 +209,7 @@ void yyerror(YYLTYPE *sloc, yyscan_t *scanner,
 parser_result_t mcc_parse_file(FILE *input)
 {
 	parser_result_t result = { .status = PARSER_STATUS_OK };
-	function_def_t *list, *prev, *current, *next;
+	function_def_t *list = NULL, *prev, *current, *next;
 	assert(input);
 
 	yyscan_t scanner;
