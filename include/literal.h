@@ -27,6 +27,7 @@ typedef enum {
 
 typedef struct {
 	E_TYPE type;
+	unsigned int line_no;
 
 	union {
 		bool b;

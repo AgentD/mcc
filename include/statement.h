@@ -19,6 +19,7 @@ typedef enum {
 struct statement_t {
 	E_STATEMENT type;
 	statement_t *next;
+	unsigned int line_no;
 
 	union {
 		struct {

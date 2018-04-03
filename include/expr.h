@@ -39,6 +39,7 @@ typedef enum {
 
 struct expression_t {
 	E_EXPR_TYPE type;
+	unsigned int line_no;
 
 	union {
 		literal_t lit;

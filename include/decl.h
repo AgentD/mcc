@@ -10,6 +10,8 @@ typedef struct decl_t {
 	int array_size;
 	off_t identifier;
 
+	unsigned int line_no;
+
 	struct decl_t *next;
 } decl_t;
 

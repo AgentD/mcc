@@ -21,6 +21,8 @@ struct function_def_t {
 	decl_t *parameters;
 	statement_t *body;
 
+	unsigned int line_no;
+
 	function_def_t *next;
 };
 
