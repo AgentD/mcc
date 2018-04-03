@@ -1,0 +1,26 @@
+             ___
+     +------|___|---+
+   __|__      R     |
+    ___  Vbat      === C
+     |              |
+     +--------------+
+
+    Vc(t + dt) = Vc(t) + dV(dt)
+
+
+    C = dQ / dV  =>  C * dV = dQ  =>  dV = dQ / C
+
+    Ic = dQ / dt  =>  dQ = Ic * dt
+
+        => dV(dt) = Ic * dt / C
+
+    Ic = Ir
+
+    Ir = Vr / R
+
+    Vr = Vbat - Vc   =>   Ic = Ir = (Vbat - Vc) / R
+
+        => dV(dt) = ((Vbat - Vc) / R) * dt / C
+
+    => Vc(t + dt) = dV(dt) + ((Vbat - Vc) / R) * dt / C
+
