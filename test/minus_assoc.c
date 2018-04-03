@@ -3,44 +3,55 @@
 #include "test.h"
 #include "mcc.h"
 
-#define ASSERT_IDENTIFIER(exp, ident) {\
-	const char *str;\
-	str = str_tab_resolve(&result.program.identifiers, exp->u.identifier);\
-	TEST_ASSERT(str != NULL);\
-	TEST_ASSERT(strcmp(str, ident) == 0);\
-}
+const char *input = 
+"int main() {\n"
+"	a - b - c;\n"
+"}\n";
 
 int main(void)
 {
-	const char *input = "a - b - c";
-	expression_t *e;
-
-	parser_result_t result = parse_string(input);
+	parser_result_t result = mcc_parse_string(input);
+	expression_t *e, *l, *r;
+	function_def_t *f;
+	str_tab_t *ident;
+	statement_t *s;
 
 	if (result.status != PARSER_STATUS_OK)
 		return EXIT_FAILURE;
 
-	e = result.expression;
+	/* assumes test_expr_basic passes */
+	f = result.program.functions;
+	ident = &result.program.identifiers;
+	s = f->body->st.compound_head;
+	e = s->st.expr;
 
-	TEST_ASSERT(e != NULL);
-	TEST_ASSERT(e->type == BINOP_SUB);
-	TEST_ASSERT(e->u.binary.left != NULL);
-	TEST_ASSERT(e->u.binary.left->type == BINOP_SUB);
-	TEST_ASSERT(e->u.binary.right != NULL);
-	TEST_ASSERT(e->u.binary.right->type == SEX_IDENTIFIER);
+	/* the expression tree must be (a - b) - c */
+	TEST_ASSERT(e != NULL)
+	TEST_ASSERT(e->type == BINOP_SUB)
 
-	ASSERT_IDENTIFIER((e->u.binary.right), "c");
+	l = e->u.binary.left;
+	r = e->u.binary.right;
 
-	e = e->u.binary.left;
-	TEST_ASSERT(e->type == BINOP_SUB);
-	TEST_ASSERT(e->u.binary.left != NULL);
-	TEST_ASSERT(e->u.binary.left->type == SEX_IDENTIFIER);
-	ASSERT_IDENTIFIER((e->u.binary.left), "a");
-	TEST_ASSERT(e->u.binary.right != NULL);
-	TEST_ASSERT(e->u.binary.right->type == SEX_IDENTIFIER);
-	ASSERT_IDENTIFIER((e->u.binary.right), "b");
+	TEST_ASSERT(l != NULL)
+	TEST_ASSERT(r != NULL)
 
-	expr_free(result.expression);
+	TEST_ASSERT(l->type == BINOP_SUB)
+	TEST_ASSERT(r->type == SEX_IDENTIFIER)
+	ASSERT_IDENTIFIER(ident, r->u.identifier, "c")
+
+	e = l;
+	l = e->u.binary.left;
+	r = e->u.binary.right;
+
+	TEST_ASSERT(l != NULL)
+	TEST_ASSERT(r != NULL)
+
+	TEST_ASSERT(l->type == SEX_IDENTIFIER)
+	ASSERT_IDENTIFIER(ident, l->u.identifier, "a")
+
+	TEST_ASSERT(r->type == SEX_IDENTIFIER)
+	ASSERT_IDENTIFIER(ident, r->u.identifier, "b")
+
 	mcc_cleanup_program(&result.program);
 	return EXIT_SUCCESS;
 }

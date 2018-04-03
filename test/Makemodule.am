@@ -1,13 +1,16 @@
-test_parser_SOURCES = test/parser.c
-test_parser_LDADD = libmcc.la
+test_function_SOURCES = test/function.c
+test_function_LDADD = libmcc.la
 
 test_unary_minus_SOURCES = test/unary_minus.c test/test.h
 test_unary_minus_LDADD = libmcc.la
 
-test_minus_assoc_SOURCES = test/unary_minus.c test/test.h
+test_expr_basic_SOURCES = test/expr_basic.c test/test.h
+test_expr_basic_LDADD = libmcc.la
+
+test_minus_assoc_SOURCES = test/minus_assoc.c test/test.h
 test_minus_assoc_LDADD = libmcc.la
 
-TESTPROGS = test_parser test_unary_minus test_minus_assoc
+TESTPROGS = test_function test_expr_basic test_minus_assoc test_unary_minus
 
 check_PROGRAMS += $(TESTPROGS)
 TESTS += $(TESTPROGS)
