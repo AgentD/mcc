@@ -27,6 +27,32 @@ void yyerror(YYLTYPE *sloc, yyscan_t *scanner,
 #define SLOC(astnode, yynode) \
 	if (astnode) (astnode)->line_no = (yynode).first_line
 %}
+%destructor { mcc_expr_free($$); } <exp>
+%destructor { mcc_stmt_free($$); } <stmt>
+%destructor { mcc_function_free($$); } <fun>
+
+%destructor {
+	arg_t *arg = $$, *old;
+
+	while (arg != NULL) {
+		old = arg;
+		arg = arg->next;
+
+		mcc_expr_free(old->expr);
+		free(old);
+	}
+} <args>
+
+%destructor {
+	decl_t *d = $$, *old;
+
+	while (d != NULL) {
+		old = d;
+		d = d->next;
+		mcc_declaration_free(old);
+	}
+} <decl>
+
 %token TK_END 0 "end of file"
 
 %token <lit> TK_INT_LITERAL "integer literal"
