@@ -187,24 +187,41 @@ program          : TK_END                                                { $$ = 
 void yyerror(YYLTYPE *sloc, yyscan_t *scanner,
 	     function_def_t **result, const char *yymsgp)
 {
-	(void)sloc; (void)scanner; (void)result; (void)yymsgp;
+	program_t *prog;
+	(void)result;
+
+	prog = yyget_extra(scanner);
+
+	prog->error_msg = strdup(yymsgp);
+	prog->error_line = sloc->first_line;
 }
 
 parser_result_t mcc_parse_file(FILE *input)
 {
-	parser_result_t result = { .status = PARSER_STATUS_OK };
 	function_def_t *list = NULL, *prev, *current, *next;
-	assert(input);
-
+	parser_result_t result;
 	yyscan_t scanner;
+
+	assert(input);
 
 	mcc_init_program(&result.program);
 
 	yylex_init_extra(&result.program, &scanner);
 	yyset_in(input, scanner);
 
-	if (yyparse(scanner, &list) != 0) {
+	switch (yyparse(scanner, &list)) {
+	case 0:
+		result.status = PARSER_STATUS_OK;
+		break;
+	case 1:
+		result.status = PARSER_STATUS_PARSE_ERROR;
+		break;
+	case 2:
+		result.status = PARSER_STATUS_OUT_OF_MEMORY;
+		break;
+	default:
 		result.status = PARSER_STATUS_UNKNOWN_ERROR;
+		break;
 	}
 
 	prev = next = NULL;

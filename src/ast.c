@@ -1,4 +1,5 @@
 #include <string.h>
+#include <stdlib.h>
 
 #include "ast.h"
 
@@ -20,5 +21,6 @@ void mcc_cleanup_program(program_t *prog)
 
 	mcc_str_tab_cleanup(&prog->strings);
 	mcc_str_tab_cleanup(&prog->identifiers);
+	free(prog->error_msg);
 	memset(prog, 0, sizeof(*prog));
 }

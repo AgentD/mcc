@@ -316,7 +316,21 @@ int main(int argc, char **argv)
 	result = mcc_parse_file(stdin);
 
 	if (result.status != PARSER_STATUS_OK) {
-		fputs("Error parsing input\n", stderr);
+		switch (result.status) {
+		case PARSER_STATUS_OUT_OF_MEMORY:
+			fputs("Out of memory\n", stderr);
+			break;
+		case PARSER_STATUS_PARSE_ERROR:
+			fprintf(stderr, "%u: %s\n",
+				result.program.error_line,
+				result.program.error_msg);
+			break;
+		default:
+			fputs("Unknown error parsing input\n", stderr);
+			break;
+		}
+
+		mcc_cleanup_program(&result.program);
 		return EXIT_FAILURE;
 	}
 

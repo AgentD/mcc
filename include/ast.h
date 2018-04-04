@@ -31,6 +31,9 @@ struct program_t {
 
 	str_tab_t strings;
 	str_tab_t identifiers;
+
+	char *error_msg;
+	unsigned int error_line;
 };
 
 #ifdef __cplusplus
