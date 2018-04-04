@@ -68,19 +68,11 @@ void yyerror(YYLTYPE *sloc, yyscan_t *scanner,
 %token KW_RETURN "return"
 %token KW_VOID "void"
 
-
-
-%type <exp> expression
-%type <exp> single_expr
-%type <exp> mulexpr
-%type <exp> addexpr
-%type <exp> cmpexpr
+%type <exp> expression single_expr mulexpr addexpr cmpexpr
 %type <lit> literal
 %type <args> arguments
 
-%type <exp> parexpr
-%type <stmt> if_stmt while_stmt ret_stmt compound_stmt statement stmt_seq
-%type <stmt> assignment
+%type <stmt> if_stmt compound_stmt statement stmt_seq assignment
 %type <type> type
 %type <decl> declaration parameters
 %type <fun> function_def function_defs program
@@ -136,20 +128,8 @@ expression       : cmpexpr                                               { $$ = 
                  | expression "&&" cmpexpr                               { $$ = mcc_mkexp($1, BINOP_ANL, $3); SLOC($$, @2); }
                  ;
 
-
-
-parexpr          : "(" expression ")"                                    { $$ = $2; }
-                 ;
-
-if_stmt          : "if" parexpr statement                                { $$ = mcc_stmt_branch($2, $3, NULL); SLOC($$, @1); }
-                 | "if" parexpr statement "else" statement               { $$ = mcc_stmt_branch($2, $3, $5); SLOC($$, @1); }
-                 ;
-
-while_stmt       : "while" parexpr statement                             { $$ = mcc_stmt_while($2, $3); SLOC($$, @1); }
-                 ;
-
-ret_stmt         : "return" ";"                                          { $$ = mcc_stmt_return(NULL); SLOC($$, @1); }
-                 | "return" expression ";"                               { $$ = mcc_stmt_return($2); SLOC($$, @1); }
+if_stmt          : "if" "(" expression ")" statement                     { $$ = mcc_stmt_branch($3, $5, NULL); SLOC($$, @1); }
+                 | "if" "(" expression ")" statement "else" statement    { $$ = mcc_stmt_branch($3, $5, $7); SLOC($$, @1); }
                  ;
 
 stmt_seq         : statement                                             { $$ = $1; }
@@ -161,8 +141,9 @@ compound_stmt    : "{" stmt_seq "}"                                      { $$ = 
                  ;
 
 statement        : if_stmt                                               { $$ = $1; }
-                 | while_stmt                                            { $$ = $1; }
-                 | ret_stmt                                              { $$ = $1; }
+                 | "while" "(" expression ")" statement                  { $$ = mcc_stmt_while($3, $5); SLOC($$, @1); }
+                 | "return" ";"                                          { $$ = mcc_stmt_return(NULL); SLOC($$, @1); }
+                 | "return" expression ";"                               { $$ = mcc_stmt_return($2); SLOC($$, @1); }
                  | assignment ";"                                        { $$ = $1; }
                  | compound_stmt                                         { $$ = $1; }
                  | declaration ";"                                       { $$ = mcc_stmt_declaration($1); $$->line_no = $1->line_no; }
