@@ -1,0 +1,20 @@
+Compile from git repo:
+
+ $ ./autogen.sh
+ $ ./configure
+ $ make
+
+Run unit tests:
+
+ $ make check
+
+Produce a distribution tar ball:
+
+ $ make distcheck
+
+
+Compile from distribution tar ball:
+
+ $ ./configure
+ $ make
+
