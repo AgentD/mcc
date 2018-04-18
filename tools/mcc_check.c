@@ -7,6 +7,8 @@ int main(int argc, char **argv)
 {
 	int i, ret = EXIT_SUCCESS;
 	parser_result_t result;
+	semantic_result_t sem;
+	const char *name;
 	FILE *in;
 
 	for (i = 1; i < argc; ++i) {
@@ -40,6 +42,37 @@ int main(int argc, char **argv)
 			}
 
 			ret = EXIT_FAILURE;
+		}
+
+		sem = mcc_semantic_check(&result.program);
+
+		if (sem.status != SEMANTIC_STATUS_OK) {
+			ret = EXIT_FAILURE;
+		}
+
+		switch (sem.status) {
+		case SEMANTIC_STATUS_OK:
+			break;
+		case SEMANTIC_FUNCTION_REDEF:
+			name = mcc_str_tab_resolve(&result.program.identifiers,
+						   sem.u.redef.first->identifier);
+			fprintf(stderr, "%s: %u: function '%s' "
+				"redefinde. Previous definition here: "
+				"%u\n", argv[i],
+				sem.u.redef.second->line_no,
+				name, sem.u.redef.first->line_no);
+			break;
+		case SEMANTIC_MAIN_MISSING:
+			fprintf(stderr,"%s: main function missing\n",argv[i]);
+			break;
+		case SEMANTIC_MAIN_TYPE:
+			fprintf(stderr, "%s: %u: type must be void main()\n",
+				argv[i], sem.u.main->line_no);
+			break;
+		case SEMATNIC_BUILTIN_REDEF:
+			fprintf(stderr, "%s: %u: redefinition of built-in\n",
+				argv[i], sem.u.redef.second->line_no);
+			break;
 		}
 
 		mcc_cleanup_program(&result.program);

@@ -9,7 +9,7 @@ int ackermann(int m, int n)
 	return ackermann(m - 1, ackermann(m, n - 1));
 }
 
-int main()
+void main()
 {
 	int m;
 	int n;
@@ -36,5 +36,4 @@ int main()
 	print(") = ");
 	print_int(a);
 	print_nl();
-	return 0;
 }

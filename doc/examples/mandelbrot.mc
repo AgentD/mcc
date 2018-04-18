@@ -40,7 +40,7 @@ bool is_in_set(float pX, float pY)
 	return false;
 }
 
-int main()
+void main()
 {
 	float fx;
 	float fy;

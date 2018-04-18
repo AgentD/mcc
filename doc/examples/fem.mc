@@ -1,4 +1,4 @@
-int main()
+void main()
 {
 	float Vbat;
 	float Vc;
@@ -67,6 +67,4 @@ int main()
 		t = t + dt;
 		iter = iter - 1;
 	}
-
-	return 0;
 }
