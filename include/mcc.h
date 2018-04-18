@@ -13,10 +13,31 @@ typedef enum {
 	PARSER_STATUS_PARSE_ERROR,
 } E_PARSER_STATUS;
 
+typedef enum {
+	SEMANTIC_STATUS_OK,
+	SEMANTIC_FUNCTION_REDEF,
+	SEMANTIC_MAIN_MISSING,
+	SEMANTIC_MAIN_TYPE,
+	SEMATNIC_BUILTIN_REDEF,
+} E_SEMANTIC_STATUS;
+
 typedef struct {
 	E_PARSER_STATUS status;
 	program_t program;
 } parser_result_t;
+
+typedef struct {
+	E_SEMANTIC_STATUS status;
+
+	union {
+		union {
+			function_def_t *first;
+			function_def_t *second;
+		} redef;
+
+		function_def_t *main;
+	} u;
+} semantic_result_t;
 
 #ifdef __cplusplus
 extern "C" {
@@ -24,6 +45,8 @@ extern "C" {
 
 parser_result_t mcc_parse_file(FILE *input);
 parser_result_t mcc_parse_string(const char *input);
+
+semantic_result_t mcc_semantic_check(program_t *prog);
 
 #ifdef __cplusplus
 }
