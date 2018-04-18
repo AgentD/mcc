@@ -47,14 +47,14 @@ static FORCE_INLINE symbol_t *mcc_mkfunsymbol(function_def_t *fun)
 	return sym;
 }
 
-static FORCE_INLINE mcc_free_symbol(symbol_t *sym)
+static FORCE_INLINE void mcc_free_symbol(symbol_t *sym)
 {
 	free(sym);
 }
 
 static FORCE_INLINE symbol_t *mcc_symtab_lookup(symbol_t *head, off_t identifier)
 {
-	while (head != NULL && head->decl->identifier != identifier)
+	while (head != NULL && head->u.decl->identifier != identifier)
 		head = head->next;
 
 	return head;
