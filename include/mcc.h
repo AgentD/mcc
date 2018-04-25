@@ -31,12 +31,12 @@ typedef struct {
 	E_SEMANTIC_STATUS status;
 
 	union {
-		union {
+		struct {
 			function_def_t *first;
 			function_def_t *second;
 		} redef;
 
-		union {
+		struct {
 			decl_t *first;
 			decl_t *second;
 		} vredef;
