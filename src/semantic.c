@@ -29,7 +29,7 @@ static semantic_result_t check_functions(program_t *prog)
 		/* check if function uses the name of a built in */
 		for (i = 0; i < ARRAY_SIZE(builtin_ident); ++i) {
 			if (f->identifier == builtin_ident[i]) {
-				ret.status = SEMATNIC_BUILTIN_REDEF;
+				ret.status = SEMANTIC_BUILTIN_REDEF;
 				ret.u.redef.first = NULL;
 				ret.u.redef.second = f;
 				return ret;

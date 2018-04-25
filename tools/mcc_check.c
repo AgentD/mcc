@@ -57,7 +57,7 @@ int main(int argc, char **argv)
 			name = mcc_str_tab_resolve(&result.program.identifiers,
 						   sem.u.redef.first->identifier);
 			fprintf(stderr, "%s: %u: function '%s' "
-				"redefinde. Previous definition here: "
+				"redefined. Previous definition here: "
 				"%u\n", argv[i],
 				sem.u.redef.second->line_no,
 				name, sem.u.redef.first->line_no);
@@ -69,7 +69,7 @@ int main(int argc, char **argv)
 			fprintf(stderr, "%s: %u: type must be void main()\n",
 				argv[i], sem.u.main->line_no);
 			break;
-		case SEMATNIC_BUILTIN_REDEF:
+		case SEMANTIC_BUILTIN_REDEF:
 			fprintf(stderr, "%s: %u: redefinition of built-in\n",
 				argv[i], sem.u.redef.second->line_no);
 			break;
