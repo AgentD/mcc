@@ -87,8 +87,8 @@ static semantic_result_t check_var_redef(statement_t *list)
 					continue;
 				if (s->st.decl->identifier == id) {
 					ret.status = SEMANTIC_VAR_REDEF;
-					ret.u.vredef.first = list->st.decl;
-					ret.u.vredef.second = s->st.decl;
+					ret.u.vredef.first = s->st.decl;
+					ret.u.vredef.second = list->st.decl;
 					goto out;
 				}
 			}
