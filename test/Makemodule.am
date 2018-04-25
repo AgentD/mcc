@@ -22,8 +22,12 @@ test_if_else2_LDADD = libmcc.la
 test_if_else3_SOURCES = test/if_else3.c test/test.h
 test_if_else3_LDADD = libmcc.la
 
+test_fun_redef_SOURCES = test/fun_redef.c test/test.h
+test_fun_redef_LDADD = libmcc.la
+
 TESTPROGS = test_function test_expr_basic test_minus_assoc test_unary_minus \
-	    test_if_else test_if_else2 test_if_else3 test_precedence
+	    test_if_else test_if_else2 test_if_else3 test_precedence \
+	    test_fun_redef
 
 check_PROGRAMS += $(TESTPROGS)
 TESTS += $(TESTPROGS)
