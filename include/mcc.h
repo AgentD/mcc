@@ -19,6 +19,7 @@ typedef enum {
 	SEMANTIC_MAIN_MISSING,
 	SEMANTIC_MAIN_TYPE,
 	SEMATNIC_BUILTIN_REDEF,
+	SEMANTIC_VAR_REDEF,
 } E_SEMANTIC_STATUS;
 
 typedef struct {
@@ -34,6 +35,11 @@ typedef struct {
 			function_def_t *first;
 			function_def_t *second;
 		} redef;
+
+		union {
+			decl_t *first;
+			decl_t *second;
+		} vredef;
 
 		function_def_t *main;
 	} u;

@@ -73,6 +73,14 @@ int main(int argc, char **argv)
 			fprintf(stderr, "%s: %u: redefinition of built-in\n",
 				argv[i], sem.u.redef.second->line_no);
 			break;
+		case SEMANTIC_VAR_REDEF:
+			name = mcc_str_tab_resolve(&result.program.identifiers,
+						   sem.u.vredef.first->identifier);
+			fprintf(stderr, "%s: %u: variable '%s' redefined. "
+				"Previous definition here: %u\n", argv[i],
+				sem.u.vredef.second->line_no, name,
+				sem.u.vredef.first->line_no);
+			break;
 		}
 
 		mcc_cleanup_program(&result.program);
