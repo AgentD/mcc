@@ -19,12 +19,14 @@ static semantic_result_t check_functions(program_t *prog)
 	function_def_t *f, *g;
 	size_t i;
 
+	/* generate/obtain IDs for main and built in functions */
 	main_ident = mcc_str_tab_add(&prog->identifiers, "main");
 
 	for (i = 0; i < ARRAY_SIZE(built_in); ++i)
 		builtin_ident[i] = mcc_str_tab_add(&prog->identifiers, built_in[i]);
-	
+
 	for (f = prog->functions; f != NULL; f = f->next) {
+		/* check if function uses the name of a built in */
 		for (i = 0; i < ARRAY_SIZE(builtin_ident); ++i) {
 			if (f->identifier == builtin_ident[i]) {
 				ret.status = SEMATNIC_BUILTIN_REDEF;
@@ -34,6 +36,7 @@ static semantic_result_t check_functions(program_t *prog)
 			}
 		}
 
+		/* check if it re-uses a previously used function name */
 		for (g = prog->functions; g != f; g = g->next) {
 			if (g->identifier == f->identifier) {
 				ret.status = SEMANTIC_FUNCTION_REDEF;
@@ -43,6 +46,7 @@ static semantic_result_t check_functions(program_t *prog)
 			}
 		}
 
+		/* if it is 'main', if yes, check function signature */
 		if (f->identifier == main_ident) {
 			main_found = true;
 
