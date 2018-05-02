@@ -81,6 +81,19 @@ int main(int argc, char **argv)
 				sem.u.vredef.second->line_no, name,
 				sem.u.vredef.first->line_no);
 			break;
+		case SEMANTIC_RET_NO_VAL:
+			fprintf(stderr, "%s: %u: expected value after "
+				"return.\n", argv[i], sem.u.stmt->line_no);
+			break;
+		case SEMANTIC_RET_VOID:
+			fprintf(stderr, "%s: %u: no value expected after "
+				"return\n", argv[i], sem.u.stmt->line_no);
+			break;
+		case SEMANTIC_NO_RET:
+			fprintf(stderr, "%s: %u: no return at end of "
+				"non-void function.\n", argv[i],
+				sem.u.stmt->line_no);
+			break;
 		}
 
 		mcc_cleanup_program(&result.program);

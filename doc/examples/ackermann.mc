@@ -24,7 +24,7 @@ void main()
 	if (m < 0 || n < 0) {
 		print("m and n must be greater or equal to 0");
 		print_nl();
-		return 1;
+		return;
 	}
 
 	a = ackermann(m, n);

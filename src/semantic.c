@@ -101,6 +101,62 @@ out:
 	return ret;
 }
 
+static semantic_result_t check_return_expr(statement_t *stmt, bool expected,
+					   statement_t *parent)
+{
+	semantic_result_t ret = { .status = SEMANTIC_STATUS_OK };
+	statement_t *s;
+
+	if (stmt == NULL)
+		return ret;
+
+	switch (stmt->type) {
+	case STMT_RET:
+		if (stmt->st.ret == NULL && expected)
+			ret.status = SEMANTIC_RET_NO_VAL;
+
+		if (stmt->st.ret != NULL && !expected)
+			ret.status = SEMANTIC_RET_VOID;
+
+		ret.u.stmt = stmt;
+		break;
+	case STMT_IF:
+		ret = check_return_expr(stmt->st.branch.exec_true,
+					expected, parent);
+		if (ret.status != SEMANTIC_STATUS_OK)
+			return ret;
+		ret = check_return_expr(stmt->st.branch.exec_false,
+					expected, parent);
+		if (ret.status != SEMANTIC_STATUS_OK)
+			return ret;
+		break;
+	case STMT_WHILE:
+		ret = check_return_expr(stmt->st.wloop.body, expected, parent);
+		break;
+	case STMT_DECL:
+	case STMT_ASSIGN:
+	case STMT_EXPR:
+		break;
+	case STMT_COMPOUND:
+		for (s = stmt->st.compound_head; s != NULL; s = s->next) {
+			ret = check_return_expr(s, expected, stmt);
+			if (ret.status != SEMANTIC_STATUS_OK)
+				return ret;
+			if (s->type == STMT_RET)
+				return ret;
+		}
+
+		/* end of non-void function, we didn't find a return */
+		if (expected && parent == NULL) {
+			ret.status = SEMANTIC_NO_RET;
+			ret.u.stmt = stmt;
+		}
+		break;
+	}
+
+	return ret;
+}
+
 
 semantic_result_t mcc_semantic_check(program_t *prog)
 {
@@ -114,6 +170,11 @@ semantic_result_t mcc_semantic_check(program_t *prog)
 
 	for (f = prog->functions; f != NULL; f = f->next) {
 		ret = check_var_redef(f->body->st.compound_head);
+
+		if (ret.status != SEMANTIC_STATUS_OK)
+			return ret;
+
+		ret = check_return_expr(f->body, f->type != TYPE_VOID, NULL);
 
 		if (ret.status != SEMANTIC_STATUS_OK)
 			return ret;

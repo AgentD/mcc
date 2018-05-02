@@ -20,6 +20,15 @@ typedef enum {
 	SEMANTIC_MAIN_TYPE,
 	SEMANTIC_BUILTIN_REDEF,
 	SEMANTIC_VAR_REDEF,
+
+	/** \brief Return without value inside non-void function */
+	SEMANTIC_RET_NO_VAL,
+
+	/** \brief Return with value inside void function */
+	SEMANTIC_RET_VOID,
+
+	/** \brief No return statement at end of non-void function */
+	SEMANTIC_NO_RET,
 } E_SEMANTIC_STATUS;
 
 typedef struct {
@@ -31,17 +40,23 @@ typedef struct {
 	E_SEMANTIC_STATUS status;
 
 	union {
+		/** \brief Function redefinition */
 		struct {
 			function_def_t *first;
 			function_def_t *second;
 		} redef;
 
+		/** \brief Variable redefinition */
 		struct {
 			decl_t *first;
 			decl_t *second;
 		} vredef;
 
+		/** \brief Invalid 'main' function */
 		function_def_t *main;
+
+		/** \brief Offending statement */
+		statement_t *stmt;
 	} u;
 } semantic_result_t;
 

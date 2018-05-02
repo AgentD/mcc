@@ -67,5 +67,4 @@ void main()
 		print_nl();
 		y = y + 1;
 	}
-	return 0;
 }

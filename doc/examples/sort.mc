@@ -50,6 +50,4 @@ void main()
 		print_nl();
 		i = i + 1;
 	}
-
-	return 0;
 }
