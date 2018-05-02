@@ -355,6 +355,7 @@ void fun_to_dot(program_t *prog, function_def_t *def)
 int main(int argc, char **argv)
 {
 	parser_result_t result;
+	semantic_result_t sem;
 	function_def_t *f;
 	(void)argv;
 
@@ -383,6 +384,13 @@ int main(int argc, char **argv)
 			break;
 		}
 
+		mcc_cleanup_program(&result.program);
+		return EXIT_FAILURE;
+	}
+
+	sem = mcc_semantic_check(&result.program);
+	if (sem.status != SEMANTIC_STATUS_OK) {
+		fputs("Semantic error in input program\n", stderr);
 		mcc_cleanup_program(&result.program);
 		return EXIT_FAILURE;
 	}
