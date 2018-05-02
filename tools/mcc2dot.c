@@ -116,7 +116,7 @@ static void sex_to_dot(program_t *prog, expression_t *sex)
 		print_arrow(sex, ptr, NULL);
 		break;
 	case SEX_CALL:
-		ptr = &sex->u.array_idx.identifier;
+		ptr = &sex->u.call.identifier;
 		str = mcc_str_tab_resolve(&prog->identifiers,
 					  sex->u.call.identifier);
 
