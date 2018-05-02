@@ -24,6 +24,26 @@ static const char *type_to_str(E_TYPE tp)
 	return "(unknown)";
 }
 
+static const char *builtin_name(E_BUILTIN_FUN f)
+{
+	switch (f) {
+	case BUILTIN_PRINT:
+		return "print";
+	case BUILTIN_PRINT_NL:
+		return "print_nl";
+	case BUILTIN_PRINT_INT:
+		return "print_int";
+	case BUILTIN_PRINT_FLOAT:
+		return "print_float";
+	case BUILTIN_READ_INT:
+		return "read_int";
+	case BUILTIN_READ_FLOAT:
+		return "read_float";
+	default:
+		return "unknown-builtin";
+	}
+}
+
 static void print_arrow(const void *src, const void *dst, const char *label)
 {
 	char name1[20], name2[20];
@@ -35,6 +55,22 @@ static void print_arrow(const void *src, const void *dst, const char *label)
 		printf("\t%s -> %s [label=\"%s\"];\n", name1, name2, label);
 	} else {
 		printf("\t%s -> %s;\n", name1, name2);
+	}
+}
+
+static void print_dotted_arrow(const void *src, const void *dst,
+			       const char *label)
+{
+	char name1[20], name2[20];
+
+	gen_name(src, name1);
+	gen_name(dst, name2);
+
+	if (label) {
+		printf("\t%s -> %s [label=\"%s\", style=dotted];\n",
+		       name1, name2, label);
+	} else {
+		printf("\t%s -> %s [style=dotted];\n", name1, name2);
 	}
 }
 
@@ -127,6 +163,23 @@ static void sex_to_dot(program_t *prog, expression_t *sex)
 		if (sex->u.call.args != NULL) {
 			args_to_dot(prog, sex->u.call.args);
 			print_arrow(sex, sex->u.call.args, NULL);
+		}
+		break;
+	case SEX_CALL_RESOLVED:
+		print_label(sex, "call");
+		print_dotted_arrow(sex, sex->u.call_resolved.fun, NULL);
+
+		if (sex->u.call_resolved.args != NULL) {
+			args_to_dot(prog, sex->u.call_resolved.args);
+			print_arrow(sex, sex->u.call_resolved.args, NULL);
+		}
+		break;
+	case SEX_CALL_BUILTIN:
+		print_label(sex, builtin_name(sex->u.call_builtin.id));
+
+		if (sex->u.call_builtin.args != NULL) {
+			args_to_dot(prog, sex->u.call_builtin.args);
+			print_arrow(sex, sex->u.call_builtin.args, NULL);
 		}
 		break;
 	case SEX_UNARY:

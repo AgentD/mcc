@@ -29,6 +29,8 @@ typedef enum {
 
 	/** \brief No return statement at end of non-void function */
 	SEMANTIC_NO_RET,
+
+	SEMANTIC_CALL_UNRESOLVED,
 } E_SEMANTIC_STATUS;
 
 typedef struct {
@@ -57,6 +59,9 @@ typedef struct {
 
 		/** \brief Offending statement */
 		statement_t *stmt;
+
+		/** \brief Offending expression node */
+		expression_t *expr;
 	} u;
 } semantic_result_t;
 

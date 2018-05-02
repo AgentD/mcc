@@ -94,6 +94,13 @@ int main(int argc, char **argv)
 				"non-void function.\n", argv[i],
 				sem.u.stmt->line_no);
 			break;
+		case SEMANTIC_CALL_UNRESOLVED:
+			name = mcc_str_tab_resolve(&result.program.identifiers,
+						   sem.u.expr->u.call.identifier);
+			fprintf(stderr, "%s: %u: call to unknown "
+				"function '%s'\n", argv[i], sem.u.expr->line_no,
+				name);
+			break;
 		}
 
 		mcc_cleanup_program(&result.program);

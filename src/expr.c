@@ -72,9 +72,11 @@ expression_t *mcc_mkexp(expression_t *left, E_EXPR_TYPE type,
 
 void mcc_expr_free(expression_t *sex)
 {
-	arg_t *arg;
+	arg_t *arg, *args;
 
 	if (sex != NULL) {
+		args = NULL;
+
 		switch (sex->type) {
 		case SEX_LITERAL:
 		case SEX_IDENTIFIER:
@@ -82,14 +84,14 @@ void mcc_expr_free(expression_t *sex)
 		case SEX_ARRAY_INDEX:
 			mcc_expr_free(sex->u.array_idx.index);
 			break;
+		case SEX_CALL_RESOLVED:
+			args = sex->u.call_resolved.args;
+			break;
+		case SEX_CALL_BUILTIN:
+			args = sex->u.call_builtin.args;
+			break;
 		case SEX_CALL:
-			while (sex->u.call.args != NULL) {
-				arg = sex->u.call.args;
-				sex->u.call.args = arg->next;
-
-				mcc_expr_free(arg->expr);
-				free(arg);
-			}
+			args = sex->u.call.args;
 			break;
 		case SEX_UNARY:
 			mcc_expr_free(sex->u.unary.exp);
@@ -98,6 +100,14 @@ void mcc_expr_free(expression_t *sex)
 			mcc_expr_free(sex->u.binary.left);
 			mcc_expr_free(sex->u.binary.right);
 			break;
+		}
+
+		while (args != NULL) {
+			arg = args;
+			args = arg->next;
+
+			mcc_expr_free(arg->expr);
+			free(arg);
 		}
 
 		free(sex);

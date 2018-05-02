@@ -12,6 +12,15 @@ struct arg_t {
 };
 
 typedef enum {
+	BUILTIN_PRINT = 0,
+	BUILTIN_PRINT_NL = 1,
+	BUILTIN_PRINT_INT = 2,
+	BUILTIN_PRINT_FLOAT = 3,
+	BUILTIN_READ_INT = 4,
+	BUILTIN_READ_FLOAT = 5,
+} E_BUILTIN_FUN;
+
+typedef enum {
 	BINOP_ADD,
 	BINOP_SUB,
 	BINOP_MUL,
@@ -30,6 +39,12 @@ typedef enum {
 	SEX_ARRAY_INDEX,
 	SEX_CALL,
 	SEX_UNARY,
+
+	/** \brief A call after resolving function names */
+	SEX_CALL_RESOLVED,
+
+	/** \brief A call resolved to a builtin function */
+	SEX_CALL_BUILTIN,
 } E_EXPR_TYPE;
 
 typedef enum {
@@ -55,6 +70,16 @@ struct expression_t {
 			off_t identifier;
 			arg_t *args;
 		} call;
+
+		struct {
+			struct function_def_t *fun;
+			arg_t *args;
+		} call_resolved;
+
+		struct {
+			E_BUILTIN_FUN id;
+			arg_t *args;
+		} call_builtin;
 
 		struct {
 			E_UNARY op;

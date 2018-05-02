@@ -1,12 +1,19 @@
+#include <string.h>
+#include <assert.h>
+
 #include "mcc.h"
 
-static const char *built_in[] = {
-	"print",
-	"print_nl",
-	"print_int",
-	"print_float",
-	"read_int",
-	"read_float",
+
+static const struct {
+	const char *name;
+	E_BUILTIN_FUN id;
+} built_in[] = {
+	{ "print", BUILTIN_PRINT },
+	{ "print_nl", BUILTIN_PRINT_NL },
+	{ "print_int", BUILTIN_PRINT_INT },
+	{ "print_float", BUILTIN_PRINT_FLOAT },
+	{ "read_int", BUILTIN_READ_INT },
+	{ "read_float", BUILTIN_READ_FLOAT },
 };
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
@@ -22,8 +29,10 @@ static semantic_result_t check_functions(program_t *prog)
 	/* generate/obtain IDs for main and built in functions */
 	main_ident = mcc_str_tab_add(&prog->identifiers, "main");
 
-	for (i = 0; i < ARRAY_SIZE(built_in); ++i)
-		builtin_ident[i] = mcc_str_tab_add(&prog->identifiers, built_in[i]);
+	for (i = 0; i < ARRAY_SIZE(built_in); ++i) {
+		builtin_ident[i] = mcc_str_tab_add(&prog->identifiers,
+						   built_in[i].name);
+	}
 
 	for (f = prog->functions; f != NULL; f = f->next) {
 		/* check if function uses the name of a built in */
@@ -157,6 +166,152 @@ static semantic_result_t check_return_expr(statement_t *stmt, bool expected,
 	return ret;
 }
 
+static function_def_t *find_fun(program_t *prog, off_t identifier)
+{
+	function_def_t *f;
+
+	for (f = prog->functions; f != NULL; f = f->next) {
+		if (f->identifier == identifier)
+			return f;
+	}
+
+	return NULL;
+}
+
+static bool find_builtin(program_t *prog, off_t identifier, E_BUILTIN_FUN *ret)
+{
+	const char *str = mcc_str_tab_resolve(&prog->identifiers, identifier);
+	size_t i;
+
+	for (i = 0; i < ARRAY_SIZE(built_in); ++i) {
+		if (!strcmp(str, built_in[i].name)) {
+			*ret = built_in[i].id;
+			return true;
+		}
+	}
+
+	return false;
+}
+
+static semantic_result_t link_fun_expr(expression_t *expr, program_t *prog)
+{
+	semantic_result_t ret = { .status = SEMANTIC_STATUS_OK };
+	E_BUILTIN_FUN builtin;
+	function_def_t *f;
+	arg_t *a;
+
+	if (expr == NULL)
+		return ret;
+
+	switch (expr->type) {
+	case BINOP_ADD:
+	case BINOP_SUB:
+	case BINOP_MUL:
+	case BINOP_DIV:
+	case BINOP_LESS:
+	case BINOP_GREATER:
+	case BINOP_LEQ:
+	case BINOP_GEQ:
+	case BINOP_ANL:
+	case BINOP_ORL:
+	case BINOP_EQU:
+	case BINOP_NEQU:
+		ret = link_fun_expr(expr->u.binary.left, prog);
+		if (ret.status != SEMANTIC_STATUS_OK)
+			break;
+		ret = link_fun_expr(expr->u.binary.right, prog);
+		break;
+	case SEX_UNARY:
+		ret = link_fun_expr(expr->u.unary.exp, prog);
+		break;
+	case SEX_LITERAL:
+	case SEX_IDENTIFIER:
+		break;
+	case SEX_ARRAY_INDEX:
+		ret = link_fun_expr(expr->u.array_idx.index, prog);
+		break;
+	case SEX_CALL:
+		for (a = expr->u.call.args; a != NULL; a = a->next) {
+			ret = link_fun_expr(a->expr, prog);
+			if (ret.status != SEMANTIC_STATUS_OK)
+				return ret;
+		}
+
+		f = find_fun(prog, expr->u.call.identifier);
+		if (f != NULL) {
+			expr->type = SEX_CALL_RESOLVED;
+			expr->u.call_resolved.args = expr->u.call.args;
+			expr->u.call_resolved.fun = f;
+			break;
+		}
+
+		if (find_builtin(prog, expr->u.call.identifier, &builtin)) {
+			expr->type = SEX_CALL_BUILTIN;
+			expr->u.call_builtin.args = expr->u.call.args;
+			expr->u.call_builtin.id = builtin;
+			break;
+		}
+
+		ret.status = SEMANTIC_CALL_UNRESOLVED;
+		ret.u.expr = expr;
+		break;
+	case SEX_CALL_RESOLVED:
+	case SEX_CALL_BUILTIN:
+		assert(0);
+	}
+
+	return ret;
+}
+
+static semantic_result_t link_fun_stmt(statement_t *stmt, program_t *prog)
+{
+	semantic_result_t ret = { .status = SEMANTIC_STATUS_OK };
+	statement_t *s;
+
+	if (stmt == NULL)
+		return ret;
+
+	switch (stmt->type) {
+	case STMT_IF:
+		ret = link_fun_expr(stmt->st.branch.cond, prog);
+		if (ret.status != SEMANTIC_STATUS_OK)
+			break;
+		ret = link_fun_stmt(stmt->st.branch.exec_true, prog);
+		if (ret.status != SEMANTIC_STATUS_OK)
+			break;
+		ret = link_fun_stmt(stmt->st.branch.exec_false, prog);
+		break;
+	case STMT_WHILE:
+		ret = link_fun_expr(stmt->st.wloop.cond, prog);
+		if (ret.status != SEMANTIC_STATUS_OK)
+			break;
+		ret = link_fun_stmt(stmt->st.wloop.body, prog);
+		break;
+	case STMT_ASSIGN:
+		ret = link_fun_expr(stmt->st.assignment.array_index, prog);
+		if (ret.status != SEMANTIC_STATUS_OK)
+			break;
+		ret = link_fun_expr(stmt->st.assignment.value, prog);
+		break;
+	case STMT_RET:
+		ret = link_fun_expr(stmt->st.ret, prog);
+		break;
+	case STMT_DECL:
+		break;
+	case STMT_EXPR:
+		ret = link_fun_expr(stmt->st.expr, prog);
+		break;
+	case STMT_COMPOUND:
+		for (s = stmt->st.compound_head; s != NULL; s = s->next) {
+			ret = link_fun_stmt(s, prog);
+			if (ret.status != SEMANTIC_STATUS_OK)
+				break;
+		}
+		break;
+	}
+
+	return ret;
+}
 
 semantic_result_t mcc_semantic_check(program_t *prog)
 {
@@ -175,6 +330,11 @@ semantic_result_t mcc_semantic_check(program_t *prog)
 			return ret;
 
 		ret = check_return_expr(f->body, f->type != TYPE_VOID, NULL);
+
+		if (ret.status != SEMANTIC_STATUS_OK)
+			return ret;
+
+		ret = link_fun_stmt(f->body, prog);
 
 		if (ret.status != SEMANTIC_STATUS_OK)
 			return ret;
