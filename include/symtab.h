@@ -9,17 +9,11 @@
 typedef enum {
 	SYM_TYPE_ARG = 0,
 	SYM_TYPE_VAR,
-	SYM_TYPE_FUN,
 } E_SYM_TYPE;
 
 typedef struct symbol_t {
 	E_SYM_TYPE type;
-
-	union {
-		decl_t *decl;
-		function_def_t *fun;
-	} u;
-
+	decl_t *decl;
 	struct symbol_t *next;
 } symbol_t;
 
@@ -29,19 +23,7 @@ static FORCE_INLINE symbol_t *mcc_mksymbol(E_SYM_TYPE type, decl_t *decl)
 
 	if (sym != NULL) {
 		sym->type = type;
-		sym->u.decl = decl;
-	}
-
-	return sym;
-}
-
-static FORCE_INLINE symbol_t *mcc_mkfunsymbol(function_def_t *fun)
-{
-	symbol_t *sym = calloc(1, sizeof(*sym));
-
-	if (sym != NULL) {
-		sym->type = SYM_TYPE_FUN;
-		sym->u.fun = fun;
+		sym->decl = decl;
 	}
 
 	return sym;
@@ -54,7 +36,7 @@ static FORCE_INLINE void mcc_free_symbol(symbol_t *sym)
 
 static FORCE_INLINE symbol_t *mcc_symtab_lookup(symbol_t *head, off_t identifier)
 {
-	while (head != NULL && head->u.decl->identifier != identifier)
+	while (head != NULL && head->decl->identifier != identifier)
 		head = head->next;
 
 	return head;
