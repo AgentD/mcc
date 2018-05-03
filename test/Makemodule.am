@@ -55,11 +55,18 @@ test_return3_LDADD = libmcc.la
 test_return4_SOURCES = test/return4.c test/test.h
 test_return4_LDADD = libmcc.la
 
+test_fun_link_SOURCES = test/fun_link.c test/test.h
+test_fun_link_LDADD = libmcc.la
+
+test_fun_link2_SOURCES = test/fun_link2.c test/test.h
+test_fun_link2_LDADD = libmcc.la
+
 TESTPROGS = test_function test_expr_basic test_minus_assoc test_unary_minus \
 	    test_if_else test_if_else2 test_if_else3 test_precedence \
 	    test_fun_redef test_main_check test_main_check2 test_main_check3 \
 	    test_fun_redef2 test_var_redef test_var_redef2 test_return \
-	    test_return2 test_return3 test_return4
+	    test_return2 test_return3 test_return4 test_fun_link \
+	    test_fun_link2
 
 check_PROGRAMS += $(TESTPROGS)
 TESTS += $(TESTPROGS)
