@@ -6,25 +6,17 @@
 
 #include <stdlib.h>
 
-typedef enum {
-	SYM_TYPE_ARG = 0,
-	SYM_TYPE_VAR,
-} E_SYM_TYPE;
-
 typedef struct symbol_t {
-	E_SYM_TYPE type;
 	decl_t *decl;
 	struct symbol_t *next;
 } symbol_t;
 
-static FORCE_INLINE symbol_t *mcc_mksymbol(E_SYM_TYPE type, decl_t *decl)
+static FORCE_INLINE symbol_t *mcc_mksymbol(decl_t *decl)
 {
 	symbol_t *sym = calloc(1, sizeof(*sym));
 
-	if (sym != NULL) {
-		sym->type = type;
+	if (sym != NULL)
 		sym->decl = decl;
-	}
 
 	return sym;
 }

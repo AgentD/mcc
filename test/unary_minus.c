@@ -35,17 +35,17 @@ int main(void)
 	TEST_ASSERT(l != NULL)
 	TEST_ASSERT(r != NULL)
 
-	TEST_ASSERT(l->type == SEX_IDENTIFIER)
+	TEST_ASSERT(l->type == SEX_VAR_ACCESS)
 	TEST_ASSERT(r->type == SEX_UNARY)
 
-	ASSERT_IDENTIFIER(ident, l->u.identifier, "a")
+	ASSERT_IDENTIFIER(ident, l->u.var.identifier, "a")
 
 	TEST_ASSERT(r->u.unary.op == UNARY_NEG)
 	e = r->u.unary.exp;
 
 	TEST_ASSERT(e != NULL)
-	TEST_ASSERT(e->type == SEX_IDENTIFIER)
-	ASSERT_IDENTIFIER(ident, e->u.identifier, "b")
+	TEST_ASSERT(e->type == SEX_VAR_ACCESS)
+	ASSERT_IDENTIFIER(ident, e->u.var.identifier, "b")
 
 	mcc_cleanup_program(&result.program);
 	return EXIT_SUCCESS;

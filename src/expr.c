@@ -13,11 +13,7 @@ expression_t *mcc_sex_literal(literal_t lit)
 
 expression_t *mcc_sex_identifier(off_t identifier)
 {
-	expression_t *s = calloc(1, sizeof(*s));
-
-	s->type = SEX_IDENTIFIER;
-	s->u.identifier = identifier;
-	return s;
+	return mcc_sex_array_access(identifier, NULL);
 }
 
 expression_t *mcc_sex_unary(E_UNARY op, expression_t *exp)
@@ -34,9 +30,9 @@ expression_t *mcc_sex_array_access(off_t identifier, expression_t *index)
 {
 	expression_t *s = calloc(1, sizeof(*s));
 
-	s->type = SEX_ARRAY_INDEX;
-	s->u.array_idx.identifier = identifier;
-	s->u.array_idx.index = index;
+	s->type = SEX_VAR_ACCESS;
+	s->u.var.identifier = identifier;
+	s->u.var.index = index;
 	return s;
 }
 
@@ -79,14 +75,12 @@ void mcc_expr_free(expression_t *sex)
 
 		switch (sex->type) {
 		case SEX_LITERAL:
-		case SEX_IDENTIFIER:
-		case SEX_RESOLVED_PARAM:
-		case SEX_RESOLVED_VAR:
-		case SEX_ARRAY_IDX_VAR:
-		case SEX_ARRAY_IDX_PARAM:
 			break;
-		case SEX_ARRAY_INDEX:
-			mcc_expr_free(sex->u.array_idx.index);
+		case SEX_RESOLVED_VAR:
+			mcc_expr_free(sex->u.var_resolved.index);
+			break;
+		case SEX_VAR_ACCESS:
+			mcc_expr_free(sex->u.var.index);
 			break;
 		case SEX_CALL_RESOLVED:
 			args = sex->u.call_resolved.args;

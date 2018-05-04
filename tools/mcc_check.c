@@ -106,11 +106,7 @@ int main(int argc, char **argv)
 			fprintf(stderr, "%s: out of memory\n", argv[i]);
 			break;
 		case SEMANTIC_UNKNOWN_VAR:
-			if (sem.u.expr->type == SEX_ARRAY_INDEX) {
-				id = sem.u.expr->u.array_idx.identifier;
-			} else {
-				id = sem.u.expr->u.identifier;
-			}
+			id = sem.u.expr->u.var.identifier;
 			name = mcc_str_tab_resolve(&result.program.identifiers,
 						   id);
 			fprintf(stderr, "%s: %u: usage of unknown "

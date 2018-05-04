@@ -14,12 +14,7 @@ typedef enum {
 	STMT_ASSIGN,
 	STMT_EXPR,
 	STMT_COMPOUND,
-
-	/** \brief Assignment to a local variable */
-	STMT_ASSIGN_VAR,
-
-	/** \brief Assignment to a function parameter */
-	STMT_ASSIGN_PARAM,
+	STMT_ASSIGN_RESOLVED,
 } E_STATEMENT;
 
 struct statement_t {

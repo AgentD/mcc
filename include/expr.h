@@ -35,8 +35,7 @@ typedef enum {
 	BINOP_NEQU,	/**< \brief Not equal */
 
 	SEX_LITERAL,
-	SEX_IDENTIFIER,
-	SEX_ARRAY_INDEX,
+	SEX_VAR_ACCESS,
 	SEX_CALL,
 	SEX_UNARY,
 
@@ -48,15 +47,6 @@ typedef enum {
 
 	/** \brief Access to a variable */
 	SEX_RESOLVED_VAR,
-
-	/** \brief Access to a function parameter */
-	SEX_RESOLVED_PARAM,
-
-	/** \brief Access to a local variable array */
-	SEX_ARRAY_IDX_VAR,
-
-	/** \brief Access to a function parameter array */
-	SEX_ARRAY_IDX_PARAM,
 } E_EXPR_TYPE;
 
 typedef enum {
@@ -71,19 +61,15 @@ struct expression_t {
 	union {
 		literal_t lit;
 
-		off_t identifier;
-
-		struct decl_t *resolved;
-
 		struct {
 			off_t identifier;
 			expression_t *index;
-		} array_idx;
+		} var;
 
 		struct {
-			struct decl_t *array;
+			struct decl_t *var;
 			expression_t *index;
-		} array_idx_resolved;
+		} var_resolved;
 
 		struct {
 			off_t identifier;

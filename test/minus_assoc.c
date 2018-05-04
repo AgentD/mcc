@@ -36,8 +36,9 @@ int main(void)
 	TEST_ASSERT(r != NULL)
 
 	TEST_ASSERT(l->type == BINOP_SUB)
-	TEST_ASSERT(r->type == SEX_IDENTIFIER)
-	ASSERT_IDENTIFIER(ident, r->u.identifier, "c")
+	TEST_ASSERT(r->type == SEX_VAR_ACCESS)
+	TEST_ASSERT(r->u.var.index == NULL)
+	ASSERT_IDENTIFIER(ident, r->u.var.identifier, "c")
 
 	e = l;
 	l = e->u.binary.left;
@@ -46,11 +47,13 @@ int main(void)
 	TEST_ASSERT(l != NULL)
 	TEST_ASSERT(r != NULL)
 
-	TEST_ASSERT(l->type == SEX_IDENTIFIER)
-	ASSERT_IDENTIFIER(ident, l->u.identifier, "a")
+	TEST_ASSERT(l->type == SEX_VAR_ACCESS)
+	TEST_ASSERT(l->u.var.index == NULL)
+	ASSERT_IDENTIFIER(ident, l->u.var.identifier, "a")
 
-	TEST_ASSERT(r->type == SEX_IDENTIFIER)
-	ASSERT_IDENTIFIER(ident, r->u.identifier, "b")
+	TEST_ASSERT(r->type == SEX_VAR_ACCESS)
+	TEST_ASSERT(r->u.var.index == NULL)
+	ASSERT_IDENTIFIER(ident, r->u.var.identifier, "b")
 
 	mcc_cleanup_program(&result.program);
 	return EXIT_SUCCESS;

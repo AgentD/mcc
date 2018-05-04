@@ -134,30 +134,32 @@ static void sex_to_dot(program_t *prog, expression_t *sex)
 
 		print_label(sex, buffer);
 		break;
-	case SEX_IDENTIFIER:
+	case SEX_VAR_ACCESS:
+		ptr = &sex->u.var.identifier;
 		str = mcc_str_tab_resolve(&prog->identifiers,
-					  sex->u.identifier);
-		print_label(sex, str);
+					  sex->u.var.identifier);
+
+		if (sex->u.var.index != NULL) {
+			print_label(sex, "array read");
+			print_label(ptr, str);
+			sex_to_dot(prog, sex->u.var.index);
+			print_arrow(sex, ptr, "array");
+			print_arrow(sex, sex->u.var.index, "index");
+		} else {
+			print_label(sex, str);
+		}
 		break;
-	case SEX_ARRAY_INDEX:
-		ptr = &sex->u.array_idx.identifier;
-		str = mcc_str_tab_resolve(&prog->identifiers,
-					  sex->u.array_idx.identifier);
-
-		print_label(sex, "array access");
-		print_label(ptr, str);
-		sex_to_dot(prog, sex->u.array_idx.index);
-
-		print_arrow(sex, sex->u.array_idx.index, "index");
-		print_arrow(sex, ptr, "array");
-		break;
-	case SEX_ARRAY_IDX_VAR:
-	case SEX_ARRAY_IDX_PARAM:
-		print_label(sex, "array access");
-		sex_to_dot(prog, sex->u.array_idx.index);
-
-		print_arrow(sex, sex->u.array_idx.index, "index");
-		print_dotted_arrow(sex, sex->u.array_idx_resolved.array, "array");
+	case SEX_RESOLVED_VAR:
+		if (sex->u.var_resolved.index != NULL) {
+			print_label(sex, "array read");
+			sex_to_dot(prog, sex->u.var_resolved.index);
+			print_dotted_arrow(sex, sex->u.var_resolved.var,
+					   "array");
+			print_arrow(sex, sex->u.var_resolved.index, "index");
+		} else {
+			print_label(sex, "var");
+			print_dotted_arrow(sex, sex->u.var_resolved.var, NULL);
+		}
 		break;
 	case SEX_CALL:
 		ptr = &sex->u.call.identifier;
@@ -172,14 +174,6 @@ static void sex_to_dot(program_t *prog, expression_t *sex)
 			args_to_dot(prog, sex->u.call.args);
 			print_arrow(sex, sex->u.call.args, NULL);
 		}
-		break;
-	case SEX_RESOLVED_VAR:
-		print_label(sex, "var");
-		print_dotted_arrow(sex, sex->u.resolved, NULL);
-		break;
-	case SEX_RESOLVED_PARAM:
-		print_label(sex, "param");
-		print_dotted_arrow(sex, sex->u.resolved, NULL);
 		break;
 	case SEX_CALL_RESOLVED:
 		print_label(sex, "call");
@@ -313,8 +307,7 @@ static void stmt_to_dot(program_t *prog, statement_t *stmt)
 				    "INDEX");
 		}
 		break;
-	case STMT_ASSIGN_VAR:
-	case STMT_ASSIGN_PARAM:
+	case STMT_ASSIGN_RESOLVED:
 		print_box(stmt, "ASSIGN");
 
 		print_dotted_arrow(stmt, stmt->st.assign_resolved.target,
