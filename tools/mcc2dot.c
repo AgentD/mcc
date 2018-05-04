@@ -323,9 +323,9 @@ static void stmt_to_dot(program_t *prog, statement_t *stmt)
 		sex_to_dot(prog, stmt->st.assign_resolved.value);
 		print_arrow(stmt, stmt->st.assign_resolved.value, "RHS");
 
-		if (stmt->st.assignment.array_index) {
-			sex_to_dot(prog, stmt->st.assignment.array_index);
-			print_arrow(stmt, stmt->st.assignment.array_index,
+		if (stmt->st.assign_resolved.array_index) {
+			sex_to_dot(prog, stmt->st.assign_resolved.array_index);
+			print_arrow(stmt, stmt->st.assign_resolved.array_index,
 				    "INDEX");
 		}
 		break;

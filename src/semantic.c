@@ -336,6 +336,8 @@ static semantic_result_t link_fun_stmt(statement_t *stmt, program_t *prog,
 		if (ret.status != SEMANTIC_STATUS_OK)
 			break;
 		ret = link_fun_expr(stmt->st.assignment.value, prog, symtab);
+		if (ret.status != SEMANTIC_STATUS_OK)
+			break;
 
 		sym = mcc_symtab_lookup(symtab, stmt->st.assignment.identifier);
 		if (sym == NULL) {

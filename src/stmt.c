@@ -122,10 +122,13 @@ void mcc_stmt_free(statement_t *stmt)
 		mcc_declaration_free(stmt->st.decl);
 		break;
 	case STMT_ASSIGN:
-	case STMT_ASSIGN_VAR:
-	case STMT_ASSIGN_PARAM:
 		mcc_expr_free(stmt->st.assignment.array_index);
 		mcc_expr_free(stmt->st.assignment.value);
+		break;
+	case STMT_ASSIGN_VAR:
+	case STMT_ASSIGN_PARAM:
+		mcc_expr_free(stmt->st.assign_resolved.array_index);
+		mcc_expr_free(stmt->st.assign_resolved.value);
 		break;
 	case STMT_EXPR:
 		mcc_expr_free(stmt->st.expr);

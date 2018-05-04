@@ -24,6 +24,12 @@ function_def_t *mcc_function(E_TYPE type, off_t identifier, decl_t *parameters,
 		f->identifier = identifier;
 		f->parameters = prev;
 		f->body = body;
+
+		current = f->parameters;
+		while (current != NULL) {
+			current->flags |= DECL_FLAG_PARAM;
+			current = current->next;
+		}
 	}
 	return f;
 }

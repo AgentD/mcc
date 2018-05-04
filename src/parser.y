@@ -182,8 +182,8 @@ type             : "bool"                                                { $$ = 
                  | "string"                                              { $$ = TYPE_STRING; }
                  ;
 
-declaration      : type TK_IDENTIFIER                                    { $$ = mcc_declaration($1, 1, $2); SLOC($$, @2); }
-                 | type "[" TK_INT_LITERAL "]" TK_IDENTIFIER             { $$ = mcc_declaration($1, $3.value.i, $5); SLOC($$, @2); }
+declaration      : type TK_IDENTIFIER                                    { $$ = mcc_declaration($1, 1, $2, 0); SLOC($$, @2); }
+                 | type "[" TK_INT_LITERAL "]" TK_IDENTIFIER             { $$ = mcc_declaration($1, $3.value.i, $5, DECL_FLAG_ARRAY); SLOC($$, @2); }
                  ;
 
 assignment       : TK_IDENTIFIER "=" expression                          { $$ = mcc_stmt_assignment($1, NULL, $3); SLOC($$, @2); }
