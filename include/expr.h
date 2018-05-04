@@ -45,6 +45,18 @@ typedef enum {
 
 	/** \brief A call resolved to a builtin function */
 	SEX_CALL_BUILTIN,
+
+	/** \brief Access to a variable */
+	SEX_RESOLVED_VAR,
+
+	/** \brief Access to a function parameter */
+	SEX_RESOLVED_PARAM,
+
+	/** \brief Access to a local variable array */
+	SEX_ARRAY_IDX_VAR,
+
+	/** \brief Access to a function parameter array */
+	SEX_ARRAY_IDX_PARAM,
 } E_EXPR_TYPE;
 
 typedef enum {
@@ -61,10 +73,17 @@ struct expression_t {
 
 		off_t identifier;
 
+		struct decl_t *resolved;
+
 		struct {
 			off_t identifier;
 			expression_t *index;
 		} array_idx;
+
+		struct {
+			struct decl_t *array;
+			expression_t *index;
+		} array_idx_resolved;
 
 		struct {
 			off_t identifier;

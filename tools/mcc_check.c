@@ -9,6 +9,7 @@ int main(int argc, char **argv)
 	parser_result_t result;
 	semantic_result_t sem;
 	const char *name;
+	off_t id;
 	FILE *in;
 
 	for (i = 1; i < argc; ++i) {
@@ -100,6 +101,28 @@ int main(int argc, char **argv)
 			fprintf(stderr, "%s: %u: call to unknown "
 				"function '%s'\n", argv[i], sem.u.expr->line_no,
 				name);
+			break;
+		case SEMANTIC_OOM:
+			fprintf(stderr, "%s: out of memory\n", argv[i]);
+			break;
+		case SEMANTIC_UNKNOWN_VAR:
+			if (sem.u.expr->type == SEX_ARRAY_INDEX) {
+				id = sem.u.expr->u.array_idx.identifier;
+			} else {
+				id = sem.u.expr->u.identifier;
+			}
+			name = mcc_str_tab_resolve(&result.program.identifiers,
+						   id);
+			fprintf(stderr, "%s: %u: usage of unknown "
+				"variable '%s'\n",
+				argv[i], sem.u.expr->line_no, name);
+			break;
+		case SEMANTIC_UNKNOWN_LHS:
+			name = mcc_str_tab_resolve(&result.program.identifiers,
+				   sem.u.stmt->st.assignment.identifier);
+			fprintf(stderr, "%s: %u: assignment to unknown "
+				"variable '%s'\n", argv[i],
+				sem.u.stmt->line_no, name);
 			break;
 		}
 

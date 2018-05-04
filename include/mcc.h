@@ -31,6 +31,14 @@ typedef enum {
 	SEMANTIC_NO_RET,
 
 	SEMANTIC_CALL_UNRESOLVED,
+
+	/** \brief Out of memory */
+	SEMANTIC_OOM,
+
+	SEMANTIC_UNKNOWN_VAR,
+
+	/** \brief Unknown left hand side in assignment statement */
+	SEMANTIC_UNKNOWN_LHS,
 } E_SEMANTIC_STATUS;
 
 typedef struct {

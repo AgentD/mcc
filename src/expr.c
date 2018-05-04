@@ -80,6 +80,10 @@ void mcc_expr_free(expression_t *sex)
 		switch (sex->type) {
 		case SEX_LITERAL:
 		case SEX_IDENTIFIER:
+		case SEX_RESOLVED_PARAM:
+		case SEX_RESOLVED_VAR:
+		case SEX_ARRAY_IDX_VAR:
+		case SEX_ARRAY_IDX_PARAM:
 			break;
 		case SEX_ARRAY_INDEX:
 			mcc_expr_free(sex->u.array_idx.index);

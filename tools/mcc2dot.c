@@ -148,8 +148,16 @@ static void sex_to_dot(program_t *prog, expression_t *sex)
 		print_label(ptr, str);
 		sex_to_dot(prog, sex->u.array_idx.index);
 
-		print_arrow(sex, sex->u.array_idx.index, NULL);
-		print_arrow(sex, ptr, NULL);
+		print_arrow(sex, sex->u.array_idx.index, "index");
+		print_arrow(sex, ptr, "array");
+		break;
+	case SEX_ARRAY_IDX_VAR:
+	case SEX_ARRAY_IDX_PARAM:
+		print_label(sex, "array access");
+		sex_to_dot(prog, sex->u.array_idx.index);
+
+		print_arrow(sex, sex->u.array_idx.index, "index");
+		print_dotted_arrow(sex, sex->u.array_idx_resolved.array, "array");
 		break;
 	case SEX_CALL:
 		ptr = &sex->u.call.identifier;
@@ -164,6 +172,14 @@ static void sex_to_dot(program_t *prog, expression_t *sex)
 			args_to_dot(prog, sex->u.call.args);
 			print_arrow(sex, sex->u.call.args, NULL);
 		}
+		break;
+	case SEX_RESOLVED_VAR:
+		print_label(sex, "var");
+		print_dotted_arrow(sex, sex->u.resolved, NULL);
+		break;
+	case SEX_RESOLVED_PARAM:
+		print_label(sex, "param");
+		print_dotted_arrow(sex, sex->u.resolved, NULL);
 		break;
 	case SEX_CALL_RESOLVED:
 		print_label(sex, "call");
@@ -290,6 +306,22 @@ static void stmt_to_dot(program_t *prog, statement_t *stmt)
 
 		sex_to_dot(prog, stmt->st.assignment.value);
 		print_arrow(stmt, stmt->st.assignment.value, "RHS");
+
+		if (stmt->st.assignment.array_index) {
+			sex_to_dot(prog, stmt->st.assignment.array_index);
+			print_arrow(stmt, stmt->st.assignment.array_index,
+				    "INDEX");
+		}
+		break;
+	case STMT_ASSIGN_VAR:
+	case STMT_ASSIGN_PARAM:
+		print_box(stmt, "ASSIGN");
+
+		print_dotted_arrow(stmt, stmt->st.assign_resolved.target,
+				   "LHS");
+
+		sex_to_dot(prog, stmt->st.assign_resolved.value);
+		print_arrow(stmt, stmt->st.assign_resolved.value, "RHS");
 
 		if (stmt->st.assignment.array_index) {
 			sex_to_dot(prog, stmt->st.assignment.array_index);

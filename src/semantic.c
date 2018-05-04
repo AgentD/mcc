@@ -2,6 +2,7 @@
 #include <assert.h>
 
 #include "mcc.h"
+#include "symtab.h"
 
 
 static const struct {
@@ -145,6 +146,8 @@ static semantic_result_t check_return_expr(statement_t *stmt, bool expected,
 	case STMT_DECL:
 	case STMT_ASSIGN:
 	case STMT_EXPR:
+	case STMT_ASSIGN_VAR:
+	case STMT_ASSIGN_PARAM:
 		break;
 	case STMT_COMPOUND:
 		for (s = stmt->st.compound_head; s != NULL; s = s->next) {
@@ -193,11 +196,13 @@ static bool find_builtin(program_t *prog, off_t identifier, E_BUILTIN_FUN *ret)
 	return false;
 }
 
-static semantic_result_t link_fun_expr(expression_t *expr, program_t *prog)
+static semantic_result_t link_fun_expr(expression_t *expr, program_t *prog,
+				       symbol_t *symtab)
 {
 	semantic_result_t ret = { .status = SEMANTIC_STATUS_OK };
 	E_BUILTIN_FUN builtin;
 	function_def_t *f;
+	symbol_t *sym;
 	arg_t *a;
 
 	if (expr == NULL)
@@ -216,23 +221,54 @@ static semantic_result_t link_fun_expr(expression_t *expr, program_t *prog)
 	case BINOP_ORL:
 	case BINOP_EQU:
 	case BINOP_NEQU:
-		ret = link_fun_expr(expr->u.binary.left, prog);
+		ret = link_fun_expr(expr->u.binary.left, prog, symtab);
 		if (ret.status != SEMANTIC_STATUS_OK)
 			break;
-		ret = link_fun_expr(expr->u.binary.right, prog);
+		ret = link_fun_expr(expr->u.binary.right, prog, symtab);
 		break;
 	case SEX_UNARY:
-		ret = link_fun_expr(expr->u.unary.exp, prog);
+		ret = link_fun_expr(expr->u.unary.exp, prog, symtab);
 		break;
 	case SEX_LITERAL:
+		break;
 	case SEX_IDENTIFIER:
+		sym = mcc_symtab_lookup(symtab, expr->u.identifier);
+		if (sym == NULL) {
+			ret.status = SEMANTIC_UNKNOWN_VAR;
+			ret.u.expr = expr;
+			break;
+		}
+		if (sym->type == SYM_TYPE_ARG) {
+			expr->type = SEX_RESOLVED_PARAM;
+		} else {
+			expr->type = SEX_RESOLVED_VAR;
+		}
+		expr->u.resolved = sym->decl;
 		break;
 	case SEX_ARRAY_INDEX:
-		ret = link_fun_expr(expr->u.array_idx.index, prog);
+		ret = link_fun_expr(expr->u.array_idx.index, prog, symtab);
+		if (ret.status != SEMANTIC_STATUS_OK)
+			break;
+
+		sym = mcc_symtab_lookup(symtab, expr->u.array_idx.identifier);
+		if (sym == NULL) {
+			ret.status = SEMANTIC_UNKNOWN_VAR;
+			ret.u.expr = expr;
+			break;
+		}
+
+		if (sym->type == SYM_TYPE_ARG) {
+			expr->type = SEX_ARRAY_IDX_PARAM;
+		} else {
+			expr->type = SEX_ARRAY_IDX_VAR;
+		}
+
+		expr->u.array_idx_resolved.index = expr->u.array_idx.index;
+		expr->u.array_idx_resolved.array = sym->decl;
 		break;
 	case SEX_CALL:
 		for (a = expr->u.call.args; a != NULL; a = a->next) {
-			ret = link_fun_expr(a->expr, prog);
+			ret = link_fun_expr(a->expr, prog, symtab);
 			if (ret.status != SEMANTIC_STATUS_OK)
 				return ret;
 		}
@@ -257,15 +293,22 @@ static semantic_result_t link_fun_expr(expression_t *expr, program_t *prog)
 		break;
 	case SEX_CALL_RESOLVED:
 	case SEX_CALL_BUILTIN:
+	case SEX_RESOLVED_PARAM:
+	case SEX_RESOLVED_VAR:
+	case SEX_ARRAY_IDX_VAR:
+	case SEX_ARRAY_IDX_PARAM:
 		assert(0);
 	}
 
 	return ret;
 }
 
-static semantic_result_t link_fun_stmt(statement_t *stmt, program_t *prog)
+static semantic_result_t link_fun_stmt(statement_t *stmt, program_t *prog,
+				       symbol_t *symtab)
 {
 	semantic_result_t ret = { .status = SEMANTIC_STATUS_OK };
+	symbol_t *oldhead, *sym;
+	expression_t *a, *b;
 	statement_t *s;
 
 	if (stmt == NULL)
@@ -273,41 +316,79 @@ static semantic_result_t link_fun_stmt(statement_t *stmt, program_t *prog)
 
 	switch (stmt->type) {
 	case STMT_IF:
-		ret = link_fun_expr(stmt->st.branch.cond, prog);
+		ret = link_fun_expr(stmt->st.branch.cond, prog, symtab);
 		if (ret.status != SEMANTIC_STATUS_OK)
 			break;
-		ret = link_fun_stmt(stmt->st.branch.exec_true, prog);
+		ret = link_fun_stmt(stmt->st.branch.exec_true, prog, symtab);
 		if (ret.status != SEMANTIC_STATUS_OK)
 			break;
-		ret = link_fun_stmt(stmt->st.branch.exec_false, prog);
+		ret = link_fun_stmt(stmt->st.branch.exec_false, prog, symtab);
 		break;
 	case STMT_WHILE:
-		ret = link_fun_expr(stmt->st.wloop.cond, prog);
+		ret = link_fun_expr(stmt->st.wloop.cond, prog, symtab);
 		if (ret.status != SEMANTIC_STATUS_OK)
 			break;
-		ret = link_fun_stmt(stmt->st.wloop.body, prog);
+		ret = link_fun_stmt(stmt->st.wloop.body, prog, symtab);
 		break;
 	case STMT_ASSIGN:
-		ret = link_fun_expr(stmt->st.assignment.array_index, prog);
+		ret = link_fun_expr(stmt->st.assignment.array_index, prog,
+				    symtab);
 		if (ret.status != SEMANTIC_STATUS_OK)
 			break;
-		ret = link_fun_expr(stmt->st.assignment.value, prog);
+		ret = link_fun_expr(stmt->st.assignment.value, prog, symtab);
+
+		sym = mcc_symtab_lookup(symtab, stmt->st.assignment.identifier);
+		if (sym == NULL) {
+			ret.status = SEMANTIC_UNKNOWN_LHS;
+			ret.u.stmt = stmt;
+			break;
+		}
+
+		a = stmt->st.assignment.array_index;
+		b = stmt->st.assignment.value;
+
+		if (sym->type == SYM_TYPE_ARG) {
+			stmt->type = STMT_ASSIGN_PARAM;
+		} else {
+			stmt->type = STMT_ASSIGN_VAR;
+		}
+
+		stmt->st.assign_resolved.target = sym->decl;
+		stmt->st.assign_resolved.array_index = a;
+		stmt->st.assign_resolved.value = b;
 		break;
 	case STMT_RET:
-		ret = link_fun_expr(stmt->st.ret, prog);
+		ret = link_fun_expr(stmt->st.ret, prog, symtab);
 		break;
 	case STMT_DECL:
 		break;
 	case STMT_EXPR:
-		ret = link_fun_expr(stmt->st.expr, prog);
+		ret = link_fun_expr(stmt->st.expr, prog, symtab);
 		break;
 	case STMT_COMPOUND:
+		oldhead = symtab;
+
 		for (s = stmt->st.compound_head; s != NULL; s = s->next) {
-			ret = link_fun_stmt(s, prog);
+			if (s->type == STMT_DECL) {
+				sym = mcc_mksymbol(SYM_TYPE_VAR, s->st.decl);
+				if (sym == NULL) {
+					ret.status = SEMANTIC_OOM;
+					break;
+				}
+				symtab = mcc_symtab_prepend(symtab, sym);
+			}
+
+			ret = link_fun_stmt(s, prog, symtab);
 			if (ret.status != SEMANTIC_STATUS_OK)
 				break;
 		}
+
+		while (symtab != oldhead)
+			symtab = mcc_symtab_drop(symtab);
 		break;
+	case STMT_ASSIGN_VAR:
+	case STMT_ASSIGN_PARAM:
+		assert(0);
 	}
 
 	return ret;
@@ -315,8 +396,10 @@ static semantic_result_t link_fun_stmt(statement_t *stmt, program_t *prog)
 
 semantic_result_t mcc_semantic_check(program_t *prog)
 {
+	symbol_t *s, *syms = NULL;
 	semantic_result_t ret;
 	function_def_t *f;
+	decl_t *p;
 
 	ret = check_functions(prog);
 	
@@ -334,7 +417,20 @@ semantic_result_t mcc_semantic_check(program_t *prog)
 		if (ret.status != SEMANTIC_STATUS_OK)
 			return ret;
 
-		ret = link_fun_stmt(f->body, prog);
+		for (p = f->parameters; p != NULL; p = p->next) {
+			s = mcc_mksymbol(SYM_TYPE_ARG, p);
+			if (s == NULL) {
+				ret.status = SEMANTIC_OOM;
+				goto skip_link;
+			}
+
+			syms = mcc_symtab_prepend(syms, s);
+		}
+
+		ret = link_fun_stmt(f->body, prog, syms);
+	skip_link:
+		while (syms != NULL)
+			syms = mcc_symtab_drop(syms);
 
 		if (ret.status != SEMANTIC_STATUS_OK)
 			return ret;

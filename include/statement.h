@@ -13,7 +13,13 @@ typedef enum {
 	STMT_DECL,
 	STMT_ASSIGN,
 	STMT_EXPR,
-	STMT_COMPOUND
+	STMT_COMPOUND,
+
+	/** \brief Assignment to a local variable */
+	STMT_ASSIGN_VAR,
+
+	/** \brief Assignment to a function parameter */
+	STMT_ASSIGN_PARAM,
 } E_STATEMENT;
 
 struct statement_t {
@@ -38,6 +44,12 @@ struct statement_t {
 			expression_t *array_index;
 			expression_t *value;
 		} assignment;
+
+		struct {
+			decl_t *target;
+			expression_t *array_index;
+			expression_t *value;
+		} assign_resolved;
 
 		expression_t *ret;
 
