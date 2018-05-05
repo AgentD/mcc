@@ -28,6 +28,7 @@ struct function_def_t {
 
 struct program_t {
 	function_def_t *functions;
+	off_t builtins[BUILTIN_MAX];
 
 	str_tab_t strings;
 	str_tab_t identifiers;

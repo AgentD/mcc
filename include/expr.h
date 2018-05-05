@@ -13,11 +13,13 @@ struct arg_t {
 
 typedef enum {
 	BUILTIN_PRINT = 0,
-	BUILTIN_PRINT_NL = 1,
-	BUILTIN_PRINT_INT = 2,
-	BUILTIN_PRINT_FLOAT = 3,
-	BUILTIN_READ_INT = 4,
-	BUILTIN_READ_FLOAT = 5,
+	BUILTIN_PRINT_NL,
+	BUILTIN_PRINT_INT,
+	BUILTIN_PRINT_FLOAT,
+	BUILTIN_READ_INT,
+	BUILTIN_READ_FLOAT,
+
+	BUILTIN_MAX,
 } E_BUILTIN_FUN;
 
 typedef enum {
@@ -114,6 +116,8 @@ expression_t *mcc_mkexp(expression_t *left, E_EXPR_TYPE type,
 			expression_t *right);
 
 void mcc_expr_free(expression_t *sex);
+
+const char *mcc_builtin_name(E_BUILTIN_FUN id);
 
 #ifdef __cplusplus
 }

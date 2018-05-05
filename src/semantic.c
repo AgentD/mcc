@@ -4,41 +4,20 @@
 #include "mcc.h"
 #include "symtab.h"
 
-
-static const struct {
-	const char *name;
-	E_BUILTIN_FUN id;
-} built_in[] = {
-	{ "print", BUILTIN_PRINT },
-	{ "print_nl", BUILTIN_PRINT_NL },
-	{ "print_int", BUILTIN_PRINT_INT },
-	{ "print_float", BUILTIN_PRINT_FLOAT },
-	{ "read_int", BUILTIN_READ_INT },
-	{ "read_float", BUILTIN_READ_FLOAT },
-};
-
-#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
-
 static semantic_result_t check_functions(program_t *prog)
 {
-	off_t main_ident, builtin_ident[ARRAY_SIZE(built_in)];
 	semantic_result_t ret = { .status = SEMANTIC_STATUS_OK };
 	bool main_found = false;
 	function_def_t *f, *g;
+	off_t main_ident;
 	size_t i;
 
-	/* generate/obtain IDs for main and built in functions */
 	main_ident = mcc_str_tab_add(&prog->identifiers, "main");
-
-	for (i = 0; i < ARRAY_SIZE(built_in); ++i) {
-		builtin_ident[i] = mcc_str_tab_add(&prog->identifiers,
-						   built_in[i].name);
-	}
 
 	for (f = prog->functions; f != NULL; f = f->next) {
 		/* check if function uses the name of a built in */
-		for (i = 0; i < ARRAY_SIZE(builtin_ident); ++i) {
-			if (f->identifier == builtin_ident[i]) {
+		for (i = 0; i < BUILTIN_MAX; ++i) {
+			if (f->identifier == prog->builtins[i]) {
 				ret.status = SEMANTIC_BUILTIN_REDEF;
 				ret.u.redef.first = NULL;
 				ret.u.redef.second = f;
@@ -182,12 +161,11 @@ static function_def_t *find_fun(program_t *prog, off_t identifier)
 
 static bool find_builtin(program_t *prog, off_t identifier, E_BUILTIN_FUN *ret)
 {
-	const char *str = mcc_str_tab_resolve(&prog->identifiers, identifier);
-	size_t i;
+	int i;
 
-	for (i = 0; i < ARRAY_SIZE(built_in); ++i) {
-		if (!strcmp(str, built_in[i].name)) {
-			*ret = built_in[i].id;
+	for (i = 0; i < BUILTIN_MAX; ++i) {
+		if (identifier == prog->builtins[i]) {
+			*ret = i;
 			return true;
 		}
 	}

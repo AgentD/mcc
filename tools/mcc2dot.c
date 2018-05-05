@@ -24,26 +24,6 @@ static const char *type_to_str(E_TYPE tp)
 	return "(unknown)";
 }
 
-static const char *builtin_name(E_BUILTIN_FUN f)
-{
-	switch (f) {
-	case BUILTIN_PRINT:
-		return "print";
-	case BUILTIN_PRINT_NL:
-		return "print_nl";
-	case BUILTIN_PRINT_INT:
-		return "print_int";
-	case BUILTIN_PRINT_FLOAT:
-		return "print_float";
-	case BUILTIN_READ_INT:
-		return "read_int";
-	case BUILTIN_READ_FLOAT:
-		return "read_float";
-	default:
-		return "unknown-builtin";
-	}
-}
-
 static void print_arrow(const void *src, const void *dst, const char *label)
 {
 	char name1[20], name2[20];
@@ -185,7 +165,7 @@ static void sex_to_dot(program_t *prog, expression_t *sex)
 		}
 		break;
 	case SEX_CALL_BUILTIN:
-		print_label(sex, builtin_name(sex->u.call_builtin.id));
+		print_label(sex, mcc_builtin_name(sex->u.call_builtin.id));
 
 		if (sex->u.call_builtin.args != NULL) {
 			args_to_dot(prog, sex->u.call_builtin.args);

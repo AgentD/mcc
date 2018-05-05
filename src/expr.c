@@ -111,3 +111,19 @@ void mcc_expr_free(expression_t *sex)
 		free(sex);
 	}
 }
+
+static const char *builtins[] = {
+	"print",
+	"print_nl",
+	"print_int",
+	"print_float",
+	"read_int",
+	"read_float",
+};
+
+const char *mcc_builtin_name(E_BUILTIN_FUN id)
+{
+	if (id < 0 || id > BUILTIN_MAX)
+		return NULL;
+	return builtins[id];
+}
