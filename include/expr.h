@@ -39,7 +39,9 @@ typedef enum {
 	SEX_LITERAL,
 	SEX_VAR_ACCESS,
 	SEX_CALL,
-	SEX_UNARY,
+
+	SEX_UNARY_NEG,	/**< \brief Negation. Usually two's complement */
+	SEX_UNARY_INV,	/**< \brief Logical inverse */
 
 	/** \brief A call after resolving function names */
 	SEX_CALL_RESOLVED,
@@ -50,11 +52,6 @@ typedef enum {
 	/** \brief Access to a variable */
 	SEX_RESOLVED_VAR,
 } E_EXPR_TYPE;
-
-typedef enum {
-	UNARY_NEG,	/**< \brief Negation. Usually two's complement */
-	UNARY_INV,	/**< \brief Logical inverse */
-} E_UNARY;
 
 struct expression_t {
 	E_EXPR_TYPE type;
@@ -88,10 +85,7 @@ struct expression_t {
 			arg_t *args;
 		} call_builtin;
 
-		struct {
-			E_UNARY op;
-			expression_t *exp;
-		} unary;
+		expression_t *unary;
 
 		struct {
 			expression_t *left;
@@ -106,7 +100,7 @@ extern "C" {
 
 expression_t *mcc_sex_literal(literal_t lit);
 expression_t *mcc_sex_identifier(off_t identifier);
-expression_t *mcc_sex_unary(E_UNARY op, expression_t *exp);
+expression_t *mcc_sex_unary(E_EXPR_TYPE op, expression_t *exp);
 expression_t *mcc_sex_array_access(off_t identifier, expression_t *index);
 expression_t *mcc_sex_call(off_t identifier, arg_t *args);
 

@@ -172,15 +172,15 @@ static void sex_to_dot(program_t *prog, expression_t *sex)
 			print_arrow(sex, sex->u.call_builtin.args, NULL);
 		}
 		break;
-	case SEX_UNARY:
-		switch (sex->u.unary.op) {
-		case UNARY_NEG: print_label(sex, "unary -"); break;
-		case UNARY_INV: print_label(sex, "unary !"); break;
-		default:
-			assert(0);
-		}
-		sex_to_dot(prog, sex->u.unary.exp);
-		print_arrow(sex, sex->u.unary.exp, NULL);
+	case SEX_UNARY_NEG:
+		print_label(sex, "unary -");
+		sex_to_dot(prog, sex->u.unary);
+		print_arrow(sex, sex->u.unary, NULL);
+		break;
+	case SEX_UNARY_INV:
+		print_label(sex, "unary !");
+		sex_to_dot(prog, sex->u.unary);
+		print_arrow(sex, sex->u.unary, NULL);
 		break;
 	case BINOP_ADD: str = "+"; goto binary;
 	case BINOP_SUB: str = "-"; goto binary;

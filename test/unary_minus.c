@@ -36,12 +36,11 @@ int main(void)
 	TEST_ASSERT(r != NULL)
 
 	TEST_ASSERT(l->type == SEX_VAR_ACCESS)
-	TEST_ASSERT(r->type == SEX_UNARY)
+	TEST_ASSERT(r->type == SEX_UNARY_NEG)
 
 	ASSERT_IDENTIFIER(ident, l->u.var.identifier, "a")
 
-	TEST_ASSERT(r->u.unary.op == UNARY_NEG)
-	e = r->u.unary.exp;
+	e = r->u.unary;
 
 	TEST_ASSERT(e != NULL)
 	TEST_ASSERT(e->type == SEX_VAR_ACCESS)

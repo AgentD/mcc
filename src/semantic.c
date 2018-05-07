@@ -134,8 +134,9 @@ static semantic_result_t link_fun_expr(expression_t *expr, program_t *prog,
 		return ret;
 
 	switch (expr->type) {
-	case SEX_UNARY:
-		return link_fun_expr(expr->u.unary.exp, prog, symtab);
+	case SEX_UNARY_NEG:
+	case SEX_UNARY_INV:
+		return link_fun_expr(expr->u.unary, prog, symtab);
 	case SEX_LITERAL:
 		break;
 	case SEX_VAR_ACCESS:

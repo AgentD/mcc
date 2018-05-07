@@ -16,13 +16,12 @@ expression_t *mcc_sex_identifier(off_t identifier)
 	return mcc_sex_array_access(identifier, NULL);
 }
 
-expression_t *mcc_sex_unary(E_UNARY op, expression_t *exp)
+expression_t *mcc_sex_unary(E_EXPR_TYPE op, expression_t *exp)
 {
 	expression_t *s = calloc(1, sizeof(*s));
 
-	s->type = SEX_UNARY;
-	s->u.unary.op = op;
-	s->u.unary.exp = exp;
+	s->type = op;
+	s->u.unary = exp;
 	return s;
 }
 
@@ -91,8 +90,9 @@ void mcc_expr_free(expression_t *sex)
 		case SEX_CALL:
 			args = sex->u.call.args;
 			break;
-		case SEX_UNARY:
-			mcc_expr_free(sex->u.unary.exp);
+		case SEX_UNARY_NEG:
+		case SEX_UNARY_INV:
+			mcc_expr_free(sex->u.unary);
 			break;
 		default:
 			mcc_expr_free(sex->u.binary.left);
