@@ -8,15 +8,21 @@
 
 typedef struct symbol_t {
 	decl_t *decl;
+
+	/** \brief Compound statement that this was declared in */
+	statement_t *parent;
+
 	struct symbol_t *next;
 } symbol_t;
 
-static FORCE_INLINE symbol_t *mcc_mksymbol(decl_t *decl)
+static FORCE_INLINE symbol_t *mcc_mksymbol(decl_t *decl, statement_t *parent)
 {
 	symbol_t *sym = calloc(1, sizeof(*sym));
 
-	if (sym != NULL)
+	if (sym != NULL) {
 		sym->decl = decl;
+		sym->parent = parent;
+	}
 
 	return sym;
 }

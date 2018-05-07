@@ -55,41 +55,6 @@ static semantic_result_t check_functions(program_t *prog)
 	return ret;
 }
 
-static semantic_result_t check_var_redef(statement_t *list)
-{
-	semantic_result_t ret = { .status = SEMANTIC_STATUS_OK };
-	statement_t *s, *head = list;
-	off_t id;
-
-	for (; list != NULL; list = list->next) {
-		switch (list->type) {
-		case STMT_COMPOUND:
-			ret = check_var_redef(list->st.compound_head);
-			if (ret.status != SEMANTIC_STATUS_OK)
-				goto out;
-			break;
-		case STMT_DECL:
-			id = list->st.decl->identifier;
-
-			for (s = head; s != list; s = s->next) {
-				if (s->type != STMT_DECL)
-					continue;
-				if (s->st.decl->identifier == id) {
-					ret.status = SEMANTIC_VAR_REDEF;
-					ret.u.vredef.first = s->st.decl;
-					ret.u.vredef.second = list->st.decl;
-					goto out;
-				}
-			}
-			break;
-		default:
-			break;
-		}
-	}
-out:
-	return ret;
-}
-
 static semantic_result_t check_return_expr(statement_t *stmt, bool expected,
 					   statement_t *parent)
 {
@@ -324,7 +289,16 @@ static semantic_result_t link_fun_stmt(statement_t *stmt, program_t *prog,
 
 		for (s = stmt->st.compound_head; s != NULL; s = s->next) {
 			if (s->type == STMT_DECL) {
-				sym = mcc_mksymbol(s->st.decl);
+				sym = mcc_symtab_lookup(symtab,
+							s->st.decl->identifier);
+				if (sym != NULL && sym->parent == stmt) {
+					ret.status = SEMANTIC_VAR_REDEF;
+					ret.u.vredef.first = sym->decl;
+					ret.u.vredef.second = s->st.decl;
+					break;
+				}
+
+				sym = mcc_mksymbol(s->st.decl, stmt);
 				if (sym == NULL) {
 					ret.status = SEMANTIC_OOM;
 					break;
@@ -360,18 +334,21 @@ semantic_result_t mcc_semantic_check(program_t *prog)
 		return ret;
 
 	for (f = prog->functions; f != NULL; f = f->next) {
-		ret = check_var_redef(f->body->st.compound_head);
-
-		if (ret.status != SEMANTIC_STATUS_OK)
-			return ret;
-
 		ret = check_return_expr(f->body, f->type != TYPE_VOID, NULL);
 
 		if (ret.status != SEMANTIC_STATUS_OK)
 			return ret;
 
 		for (p = f->parameters; p != NULL; p = p->next) {
-			s = mcc_mksymbol(p);
+			s = mcc_symtab_lookup(syms, p->identifier);
+			if (s != NULL) {
+				ret.status = SEMANTIC_VAR_REDEF;
+				ret.u.vredef.first = s->decl;
+				ret.u.vredef.second = p;
+				goto skip_link;
+			}
+
+			s = mcc_mksymbol(p, NULL);
 			if (s == NULL) {
 				ret.status = SEMANTIC_OOM;
 				goto skip_link;
