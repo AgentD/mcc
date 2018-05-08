@@ -1,5 +1,4 @@
 #include <string.h>
-#include <assert.h>
 
 #include "mcc.h"
 #include "symtab.h"
@@ -95,6 +94,9 @@ static semantic_result_t link_fun_expr(expression_t *expr, program_t *prog,
 	case SEX_UNARY_NEG:
 	case SEX_UNARY_INV:
 		return link_fun_expr(expr->u.unary, prog, symtab);
+	case SEX_CALL_RESOLVED:
+	case SEX_CALL_BUILTIN:
+	case SEX_RESOLVED_VAR:
 	case SEX_LITERAL:
 		break;
 	case SEX_VAR_ACCESS:
@@ -140,10 +142,6 @@ static semantic_result_t link_fun_expr(expression_t *expr, program_t *prog,
 		ret.status = SEMANTIC_CALL_UNRESOLVED;
 		ret.u.expr = expr;
 		break;
-	case SEX_CALL_RESOLVED:
-	case SEX_CALL_BUILTIN:
-	case SEX_RESOLVED_VAR:
-		assert(0);
 	default:
 		ret = link_fun_expr(expr->u.binary.left, prog, symtab);
 		if (ret.status != SEMANTIC_STATUS_OK)
@@ -206,6 +204,7 @@ static semantic_result_t link_fun_stmt(statement_t *stmt, program_t *prog,
 		break;
 	case STMT_RET:
 		return link_fun_expr(stmt->st.ret, prog, symtab);
+	case STMT_ASSIGN_RESOLVED:
 	case STMT_DECL:
 		break;
 	case STMT_EXPR:
@@ -240,8 +239,6 @@ static semantic_result_t link_fun_stmt(statement_t *stmt, program_t *prog,
 		while (symtab != oldhead)
 			symtab = mcc_symtab_drop(symtab);
 		break;
-	case STMT_ASSIGN_RESOLVED:
-		assert(0);
 	}
 
 	return ret;
