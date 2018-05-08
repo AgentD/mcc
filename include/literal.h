@@ -18,7 +18,7 @@
  *        function (\ref function_def_t) or variable type (\ref decl_t)
  */
 typedef enum {
-	TYPE_VOID,	/**< \brief Only valid for \ref function_def_t */
+	TYPE_VOID = 0,
 	TYPE_BOOL,
 	TYPE_INT,
 	TYPE_FLOAT,
