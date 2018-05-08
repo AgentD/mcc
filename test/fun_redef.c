@@ -6,6 +6,7 @@
 const char *input =
 "int foo()\n"
 "{\n"
+"    return 0;\n"
 "}\n"
 "\n"
 "void bar()\n"
@@ -40,7 +41,7 @@ int main(void)
 
 	TEST_ASSERT(f != NULL)
 	TEST_ASSERT(f->type == TYPE_VOID)
-	TEST_ASSERT(f->line_no == 5)
+	TEST_ASSERT(f->line_no == 6)
 	TEST_ASSERT(f->parameters == NULL)
 	TEST_ASSERT(f->body != NULL)
 	ASSERT_IDENTIFIER(ident, f->identifier, "bar")
@@ -49,7 +50,7 @@ int main(void)
 
 	TEST_ASSERT(f != NULL)
 	TEST_ASSERT(f->type == TYPE_VOID)
-	TEST_ASSERT(f->line_no == 9)
+	TEST_ASSERT(f->line_no == 10)
 	TEST_ASSERT(f->parameters == NULL)
 	TEST_ASSERT(f->body != NULL)
 	ASSERT_IDENTIFIER(ident, f->identifier, "foo")
@@ -71,7 +72,7 @@ int main(void)
 	f = sem.u.redef.second;
 	TEST_ASSERT(f != NULL)
 	TEST_ASSERT(f->type == TYPE_VOID)
-	TEST_ASSERT(f->line_no == 9)
+	TEST_ASSERT(f->line_no == 10)
 	TEST_ASSERT(f->parameters == NULL)
 	TEST_ASSERT(f->body != NULL)
 	ASSERT_IDENTIFIER(ident, f->identifier, "foo")

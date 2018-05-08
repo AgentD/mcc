@@ -6,6 +6,7 @@
 const char *input =
 "int foo()\n"
 "{\n"
+"    return 0;\n"
 "}\n";
 
 int main(void)

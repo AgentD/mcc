@@ -29,48 +29,6 @@ static bool find_builtin(program_t *prog, off_t identifier, E_BUILTIN_FUN *ret)
 	return false;
 }
 
-static semantic_result_t check_functions(program_t *prog)
-{
-	semantic_result_t ret = { .status = SEMANTIC_STATUS_OK };
-	bool main_found = false;
-	function_def_t *f, *g;
-	off_t main_ident;
-
-	main_ident = mcc_str_tab_add(&prog->identifiers, "main");
-
-	for (f = prog->functions; f != NULL; f = f->next) {
-		if (find_builtin(prog, f->identifier, NULL)) {
-			ret.status = SEMANTIC_BUILTIN_REDEF;
-			ret.u.redef.first = NULL;
-			ret.u.redef.second = f;
-			return ret;
-		}
-
-		g = find_fun(prog, f->identifier);
-		if (g != f) {
-			ret.status = SEMANTIC_FUNCTION_REDEF;
-			ret.u.redef.first = g;
-			ret.u.redef.second = f;
-			return ret;
-		}
-
-		if (f->identifier == main_ident) {
-			main_found = true;
-
-			if (f->type != TYPE_VOID || f->parameters != NULL) {
-				ret.status = SEMANTIC_MAIN_TYPE;
-				ret.u.main = f;
-				return ret;
-			}
-		}
-	}
-
-	if (!main_found)
-		ret.status = SEMANTIC_MAIN_MISSING;
-
-	return ret;
-}
-
 static semantic_result_t check_return_expr(statement_t *stmt, bool expected,
 					   statement_t *parent)
 {
@@ -292,16 +250,40 @@ static semantic_result_t link_fun_stmt(statement_t *stmt, program_t *prog,
 semantic_result_t mcc_semantic_check(program_t *prog)
 {
 	symbol_t *s, *syms = NULL;
+	bool main_found = false;
 	semantic_result_t ret;
-	function_def_t *f;
+	function_def_t *f, *g;
+	off_t main_ident;
 	decl_t *p;
 
-	ret = check_functions(prog);
-
-	if (ret.status != SEMANTIC_STATUS_OK)
-		return ret;
+	main_ident = mcc_str_tab_add(&prog->identifiers, "main");
 
 	for (f = prog->functions; f != NULL; f = f->next) {
+		if (find_builtin(prog, f->identifier, NULL)) {
+			ret.status = SEMANTIC_BUILTIN_REDEF;
+			ret.u.redef.first = NULL;
+			ret.u.redef.second = f;
+			return ret;
+		}
+
+		g = find_fun(prog, f->identifier);
+		if (g != f) {
+			ret.status = SEMANTIC_FUNCTION_REDEF;
+			ret.u.redef.first = g;
+			ret.u.redef.second = f;
+			return ret;
+		}
+
+		if (f->identifier == main_ident) {
+			main_found = true;
+
+			if (f->type != TYPE_VOID || f->parameters != NULL) {
+				ret.status = SEMANTIC_MAIN_TYPE;
+				ret.u.main = f;
+				return ret;
+			}
+		}
+
 		ret = check_return_expr(f->body, f->type != TYPE_VOID, NULL);
 
 		if (ret.status != SEMANTIC_STATUS_OK)
@@ -333,6 +315,9 @@ semantic_result_t mcc_semantic_check(program_t *prog)
 		if (ret.status != SEMANTIC_STATUS_OK)
 			return ret;
 	}
+
+	if (!main_found)
+		ret.status = SEMANTIC_MAIN_MISSING;
 
 	return ret;
 }
