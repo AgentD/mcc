@@ -127,3 +127,33 @@ const char *mcc_builtin_name(E_BUILTIN_FUN id)
 		return NULL;
 	return builtins[id];
 }
+
+E_TYPE mcc_builtin_ret_type(E_BUILTIN_FUN id)
+{
+	switch (id) {
+	case BUILTIN_READ_INT:
+		return TYPE_INT;
+	case BUILTIN_READ_FLOAT:
+		return TYPE_FLOAT;
+	default:
+		break;
+	}
+
+	return TYPE_VOID;
+}
+
+E_TYPE mcc_builtin_param_type(E_BUILTIN_FUN id, int num)
+{
+	switch (id) {
+	case BUILTIN_PRINT:
+		return num == 0 ? TYPE_STRING : TYPE_VOID;
+	case BUILTIN_PRINT_INT:
+		return num == 0 ? TYPE_INT : TYPE_VOID;
+	case BUILTIN_PRINT_FLOAT:
+		return num == 0 ? TYPE_FLOAT : TYPE_VOID;
+	default:
+		break;
+	}
+
+	return TYPE_VOID;
+}

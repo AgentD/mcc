@@ -114,6 +114,10 @@ void mcc_expr_free(expression_t *sex);
 
 const char *mcc_builtin_name(E_BUILTIN_FUN id);
 
+E_TYPE mcc_builtin_ret_type(E_BUILTIN_FUN id);
+
+E_TYPE mcc_builtin_param_type(E_BUILTIN_FUN id, int num);
+
 #ifdef __cplusplus
 }
 #endif
