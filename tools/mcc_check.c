@@ -47,7 +47,9 @@ int main(int argc, char **argv)
 
 		sem = mcc_semantic_check(&result.program);
 
-		if (sem.status != SEMANTIC_STATUS_OK) {
+		if (sem.status == SEMANTIC_STATUS_OK) {
+			sem = mcc_type_check(&result.program);
+		} else {
 			ret = EXIT_FAILURE;
 		}
 
@@ -119,6 +121,52 @@ int main(int argc, char **argv)
 			fprintf(stderr, "%s: %u: assignment to unknown "
 				"variable '%s'\n", argv[i],
 				sem.u.stmt->line_no, name);
+			break;
+		case SEMANTIC_ASS_MISSING_ARRAY_INDEX:
+			fprintf(stderr, "%s: %u: array index in assignment "
+				"missing\n", argv[i], sem.u.stmt->line_no);
+			break;
+		case SEMANTIC_ASS_NOT_ARRAY:
+			fprintf(stderr, "%s: %u: target in assignment is not"
+				"array\n", argv[i], sem.u.stmt->line_no);
+			break;
+		case SEMANTIC_MISSING_ARRAY_INDEX:
+			name = mcc_str_tab_resolve(&result.program.identifiers,
+				sem.u.expr->u.var_resolved.var->identifier);
+			fprintf(stderr, "%s: %u: index missing for '%s'\n",
+				argv[i], sem.u.expr->line_no, name);
+			break;
+		case SEMANTIC_NOT_ARRAY:
+			name = mcc_str_tab_resolve(&result.program.identifiers,
+				sem.u.expr->u.var_resolved.var->identifier);
+			fprintf(stderr, "%s: %u: variable '%s' is not array\n",
+				argv[i], sem.u.expr->line_no, name);
+			break;
+		case SEMANTIC_ARRAY_INDEX_NOT_INT:
+			name = mcc_str_tab_resolve(&result.program.identifiers,
+				sem.u.expr->u.var_resolved.var->identifier);
+			fprintf(stderr, "%s: %u: index for '%s' is not int\n",
+				argv[i], sem.u.expr->line_no, name);
+			break;
+		case SEMANTIC_ASS_MISMATCH:
+			fprintf(stderr, "%s: %u: type mismatch in assignment\n",
+				argv[i], sem.u.stmt->line_no);
+			break;
+		case SEMANTIC_OP_NOT_BOOLEAN:
+			fprintf(stderr, "%s: %u: boolean type expected for "
+				"operator\n", argv[i], sem.u.expr->line_no);
+			break;
+		case SEMANTIC_OP_NOT_NUMERIC:
+			fprintf(stderr, "%s: %u: numeric type expected for "
+				"operator\n", argv[i], sem.u.expr->line_no);
+			break;
+		case SEMANTIC_OP_ARG_NUM:
+			fprintf(stderr, "%s: %u: wrong number of arguments "
+				"in call\n", argv[i], sem.u.expr->line_no);
+			break;
+		case SEMANTIC_OP_ARG_TYPE:
+			fprintf(stderr, "%s: %u: wrong argument type in call\n",
+				argv[i], sem.u.expr->line_no);
 			break;
 		}
 

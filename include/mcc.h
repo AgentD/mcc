@@ -39,6 +39,35 @@ typedef enum {
 
 	/** \brief Unknown left hand side in assignment statement */
 	SEMANTIC_UNKNOWN_LHS,
+
+	/** \brief tried to use an array as a variable in expression */
+	SEMANTIC_MISSING_ARRAY_INDEX,
+
+	/** \brief tried to use regular variable with index in expression */
+	SEMANTIC_NOT_ARRAY,
+
+	/** \brief tried to use an array as a variable in assignment */
+	SEMANTIC_ASS_MISSING_ARRAY_INDEX,
+
+	/** \brief tried to use regular variable with index in assignment */
+	SEMANTIC_ASS_NOT_ARRAY,
+
+	SEMANTIC_ARRAY_INDEX_NOT_INT,
+
+	/** \brief operator in expression expected boolean */
+	SEMANTIC_OP_NOT_BOOLEAN,
+
+	/** \brief operator in expression expected float or int */
+	SEMANTIC_OP_NOT_NUMERIC,
+
+	/** \brief wrong number of arguments in function call expression */
+	SEMANTIC_OP_ARG_NUM,
+
+	/** \brief wrong type arguments in function call expression */
+	SEMANTIC_OP_ARG_TYPE,
+
+	/** \brief mismatch in assignment LHS and RHS types */
+	SEMANTIC_ASS_MISMATCH,
 } E_SEMANTIC_STATUS;
 
 typedef struct {
@@ -81,6 +110,8 @@ parser_result_t mcc_parse_file(FILE *input);
 parser_result_t mcc_parse_string(const char *input);
 
 semantic_result_t mcc_semantic_check(program_t *prog);
+
+semantic_result_t mcc_type_check(program_t *prog);
 
 #ifdef __cplusplus
 }
