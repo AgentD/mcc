@@ -21,6 +21,14 @@ typedef struct decl_t {
 	unsigned int flags;
 	unsigned int line_no;
 
+	/**
+	 * \brief An opaque user data pointer
+	 *
+	 * Can be used by code generation to store, for instance, allocation
+	 * information for simplified, faster lookup.
+	 */
+	void *user;
+
 	struct decl_t *next;
 } decl_t;
 

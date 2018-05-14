@@ -135,6 +135,7 @@ static semantic_result_t link_fun_expr(expression_t *expr, program_t *prog,
 		if (find_builtin(prog, expr->u.call.identifier, &builtin)) {
 			expr->type = SEX_CALL_BUILTIN;
 			expr->u.call_builtin.args = expr->u.call.args;
+			expr->u.call_builtin.identifier = expr->u.call.identifier;
 			expr->u.call_builtin.id = builtin;
 			break;
 		}

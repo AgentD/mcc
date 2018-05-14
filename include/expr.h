@@ -83,6 +83,7 @@ struct expression_t {
 
 		struct {
 			E_BUILTIN_FUN id;
+			off_t identifier;
 			arg_t *args;
 		} call_builtin;
 
