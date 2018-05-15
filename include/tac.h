@@ -148,4 +148,14 @@ static FORCE_INLINE tac_type_t mcc_decl_to_tac_type(E_TYPE type)
 	return ret;
 }
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+mcc_tac_inst_t *mcc_optimize_tac(mcc_tac_inst_t *tac);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* MCC_TAC_H */

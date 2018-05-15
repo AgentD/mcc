@@ -219,6 +219,7 @@ int main(int argc, char **argv)
 
 	for (fun = result.program.functions; fun != NULL; fun = fun->next) {
 		tac = mcc_function_to_tac(fun);
+		tac = mcc_optimize_tac(tac);
 
 		tac_print(&result.program.identifiers, tac);
 
