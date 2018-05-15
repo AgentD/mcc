@@ -3,6 +3,7 @@
 
 #include "expr.h"
 #include "decl.h"
+#include "tac.h"
 
 typedef struct statement_t statement_t;
 
@@ -77,6 +78,8 @@ statement_t *mcc_stmt_assignment(off_t identifier, expression_t *array_index,
 				 expression_t *value);
 
 void mcc_stmt_free(statement_t *stmt);
+
+mcc_tac_inst_t *mcc_stmt_to_tac(statement_t *stmt);
 
 #ifdef __cplusplus
 }
