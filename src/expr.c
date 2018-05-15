@@ -1,6 +1,9 @@
 #include <stdlib.h>
+#include <assert.h>
 
 #include "expr.h"
+#include "decl.h"
+#include "ast.h"
 
 expression_t *mcc_sex_literal(literal_t lit)
 {
@@ -156,4 +159,289 @@ E_TYPE mcc_builtin_param_type(E_BUILTIN_FUN id, int num)
 	}
 
 	return TYPE_VOID;
+}
+
+/*****************************************************************************/
+
+static unsigned int count_args(arg_t *args)
+{
+	unsigned int i = 0;
+
+	while (args != NULL) {
+		args = args->next;
+		++i;
+	}
+	return i;
+}
+
+static mcc_tac_inst_t *serialize_args(arg_t *args, mcc_tac_inst_t **results)
+{
+	mcc_tac_inst_t *list = NULL, *n;
+	unsigned int i = 0;
+
+	while (args != NULL) {
+		if (list == NULL) {
+			list = n = mcc_expr_to_tac(args->expr);
+		} else {
+			n->next = mcc_expr_to_tac(args->expr);
+		}
+
+		while (n->next != NULL)
+			n = n->next;
+
+		results[i++] = n;
+		args = args->next;
+	}
+
+	return list;
+}
+
+/*****************************************************************************/
+
+static mcc_tac_inst_t *simple_binary(TAC_OPCODE op, expression_t *expr)
+{
+	mcc_tac_inst_t *list, *n, *l;
+
+	list = n = mcc_expr_to_tac(expr->u.binary.left);
+	while (n->next != NULL)
+		n = n->next;
+	l = n;
+	n->next = mcc_expr_to_tac(expr->u.binary.right);
+	while (n->next != NULL)
+		n = n->next;
+
+	n->next = mcc_mk_tac_node(op);
+	n->next->type = mcc_decl_to_tac_type(expr->datatype);
+	n->next->arg[0].type = TAC_ARG_RESULT;
+	n->next->arg[0].u.ref = l;
+	n->next->arg[1].type = TAC_ARG_RESULT;
+	n->next->arg[1].u.ref = n;
+	return list;
+}
+
+static mcc_tac_inst_t *simple_unary(TAC_OPCODE op, expression_t *expr)
+{
+	mcc_tac_inst_t *n, *list = mcc_expr_to_tac(expr->u.unary);
+	for (n = list; n->next != NULL; n = n->next)
+		;
+	n->next = mcc_mk_tac_node(op);
+	n->next->type = mcc_decl_to_tac_type(expr->datatype);
+	n->next->arg[0].type = TAC_ARG_RESULT;
+	n->next->arg[0].u.ref = n;
+	return list;
+}
+
+static mcc_tac_inst_t *short_circuit_binary(expression_t *expr, TAC_OPCODE skip_op)
+{
+	mcc_tac_inst_t *l, *r, *n, *list, *lbl = mcc_mk_tac_node(TAC_LABEL);
+
+	n = list = mcc_expr_to_tac(expr->u.binary.left);
+	while (n->next != NULL)
+		n = n->next;
+	l = n;
+
+	n->next = mcc_mk_tac_node(skip_op);
+	n->next->arg[0].type = TAC_ARG_RESULT;
+	n->next->arg[0].u.ref = l;
+	n->next->arg[1].type = TAC_ARG_LABEL;
+	n->next->arg[1].u.ref = lbl;
+	n = n->next;
+
+	n->next = mcc_expr_to_tac(expr->u.binary.right);
+	while (n->next != NULL)
+		n = n->next;
+	r = n;
+
+	n->next = lbl;
+	n = n->next;
+
+	n->next = mcc_mk_tac_node(TAC_OP_PHI);
+	n->next->type = mcc_decl_to_tac_type(expr->datatype);
+	n->next->arg[0].type = TAC_ARG_RESULT;
+	n->next->arg[0].u.ref = l;
+	n->next->arg[1].type = TAC_ARG_RESULT;
+	n->next->arg[1].u.ref = r;
+	return n;
+}
+
+/*****************************************************************************/
+
+static mcc_tac_inst_t *literal_node(literal_t value)
+{
+	mcc_tac_inst_t *n = mcc_mk_tac_node(TAC_IMMEDIATE);
+
+	n->type = mcc_decl_to_tac_type(value.type);
+
+	switch (value.type) {
+	case TYPE_BOOL:
+		n->arg[0].type = TAC_ARG_IMM_INT;
+		n->arg[0].u.ival = value.value.b ? 1 : 0;
+		break;
+	case TYPE_INT:
+		n->arg[0].type = TAC_ARG_IMM_INT;
+		n->arg[0].u.ival = value.value.i;
+		break;
+	case TYPE_FLOAT:
+		n->arg[0].type = TAC_ARG_IMM_FLOAT;
+		n->arg[0].u.fval = value.value.f;
+		break;
+	case TYPE_STRING:
+		n->arg[0].type = TAC_ARG_STR;
+		n->arg[0].u.strval = value.value.str;
+		break;
+	default:
+		assert(0);
+	}
+
+	return n;
+}
+
+static mcc_tac_inst_t *var_ref(decl_t *var, expression_t *index)
+{
+	mcc_tac_inst_t *list, *n;
+
+	list = mcc_mk_tac_node(TAC_LOAD_ADDRESS);
+	list->type = mcc_decl_to_tac_type(var->type);
+	list->type.ptr_level += 1;
+	list->arg[0].type = TAC_ARG_VAR;
+	list->arg[0].u.ref = var->user;
+
+	if (index == NULL) {
+		if (var->flags & DECL_FLAG_ARRAY) {
+			list->op = TAC_LOAD;
+			list->type.ptr_level -= 1;
+		}
+		return list;
+	}
+
+	list->next = mcc_expr_to_tac(index);
+	for (n = list; n->next != NULL; n = n->next)
+		;
+
+	n->next = mcc_mk_tac_node(TAC_OP_ADD);
+	n->next->type = list->type;
+	n->next->arg[0].type = TAC_ARG_RESULT;
+	n->next->arg[0].u.ref = list;
+	n->next->arg[1].type = TAC_ARG_RESULT;
+	n->next->arg[1].u.ref = n;
+	n = n->next;
+
+	n->next = mcc_mk_tac_node(TAC_LOAD);
+	n->next->type = list->type;
+	n->next->type.ptr_level -= 1;
+	n->next->arg[0].type = TAC_ARG_RESULT;
+	n->next->arg[0].u.ref = n;
+	return list;
+}
+
+static mcc_tac_inst_t *mk_call(off_t ident, E_TYPE rtype)
+{
+	mcc_tac_inst_t *n = mcc_mk_tac_node(TAC_CALL);
+
+	n->type = mcc_decl_to_tac_type(rtype);
+	n->arg[0].type = TAC_ARG_NAME;
+	n->arg[0].u.name = ident;
+	return n;
+}
+
+static mcc_tac_inst_t *mk_builtin_call(expression_t *expr)
+{
+	mcc_tac_inst_t *list, *n, **args;
+	unsigned int i;
+	E_TYPE mcctype;
+	off_t ident;
+
+	ident = expr->u.call_builtin.identifier;
+	i = count_args(expr->u.call_builtin.args);
+
+	if (!i) {
+		mcctype = mcc_builtin_ret_type(expr->u.call_builtin.id);
+		return mk_call(ident, mcctype);
+	}
+
+	args = alloca(i * sizeof(args[0]));
+	list = serialize_args(expr->u.call_builtin.args, args);
+	for (n = list; n->next != NULL; n = n->next)
+		;
+
+	while (i--) {
+		mcctype = mcc_builtin_param_type(expr->u.call_builtin.id, i);
+
+		n->next = mcc_mk_tac_node(TAC_PUSH_ARG);
+		n->next->type = mcc_decl_to_tac_type(mcctype);
+		n->next->arg[0].type = TAC_ARG_RESULT;
+		n->next->arg[0].u.ref = args[i];
+		n = n->next;
+	}
+
+	mcctype = mcc_builtin_ret_type(expr->u.call_builtin.id);
+	n->next = mk_call(ident, mcctype);
+	return list;
+}
+
+static mcc_tac_inst_t *mk_call_expr(expression_t *expr)
+{
+	mcc_tac_inst_t *list, *n, **args;
+	unsigned int i, j;
+	decl_t *param;
+	off_t ident;
+
+	ident = expr->u.call_resolved.fun->identifier;
+	i = count_args(expr->u.call_resolved.args);
+	if (!i)
+		return mk_call(ident, expr->u.call_resolved.fun->type);
+
+	args = alloca(i * sizeof(args[0]));
+	list = serialize_args(expr->u.call_resolved.args, args);
+	for (n = list; n->next != NULL; n = n->next)
+		;
+
+	while (i--) {
+		n->next = mcc_mk_tac_node(TAC_PUSH_ARG);
+		n = n->next;
+
+		n->arg[0].type = TAC_ARG_RESULT;
+		n->arg[0].u.ref = args[i];
+
+		param = expr->u.call_resolved.fun->parameters;
+		for (j = 0; j < i; ++j)
+			param = param->next;
+
+		n->type = mcc_decl_to_tac_type(param->type);
+		if (param->flags & DECL_FLAG_ARRAY)
+			n->type.ptr_level += 1;
+	}
+
+	n->next = mk_call(ident, expr->u.call_resolved.fun->type);
+	return list;
+}
+
+mcc_tac_inst_t *mcc_expr_to_tac(expression_t *expr)
+{
+	switch (expr->type) {
+	case SEX_LITERAL: return literal_node(expr->u.lit);
+	case BINOP_ADD: return simple_binary(TAC_OP_ADD, expr);
+	case BINOP_SUB: return simple_binary(TAC_OP_SUB, expr);
+	case BINOP_MUL: return simple_binary(TAC_OP_MUL, expr);
+	case BINOP_DIV: return simple_binary(TAC_OP_DIV, expr);
+	case BINOP_LESS: return simple_binary(TAC_OP_LT, expr);
+	case BINOP_GREATER: return simple_binary(TAC_OP_GT, expr);
+	case BINOP_LEQ: return simple_binary(TAC_OP_LEQ, expr);
+	case BINOP_GEQ: return simple_binary(TAC_OP_GEQ, expr);
+	case BINOP_EQU: return simple_binary(TAC_OP_EQU, expr);
+	case BINOP_NEQU: return simple_binary(TAC_OP_NEQU, expr);
+	case SEX_UNARY_NEG: return simple_unary(TAC_OP_NEG, expr);
+	case SEX_UNARY_INV: return simple_unary(TAC_OP_INV, expr);
+	case BINOP_ANL: return short_circuit_binary(expr, TAC_JZ);
+	case BINOP_ORL: return short_circuit_binary(expr, TAC_JNZ);
+	case SEX_CALL_BUILTIN: return mk_builtin_call(expr);
+	case SEX_CALL_RESOLVED: return mk_call_expr(expr);
+	case SEX_RESOLVED_VAR:
+		return var_ref(expr->u.var_resolved.var,
+			       expr->u.var_resolved.index);
+	default:
+		break;
+	}
+
+	assert(0);
 }

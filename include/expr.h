@@ -2,6 +2,7 @@
 #define MCC_EXPR_H
 
 #include "literal.h"
+#include "tac.h"
 
 typedef struct expression_t expression_t;
 typedef struct arg_t arg_t;
@@ -118,6 +119,8 @@ const char *mcc_builtin_name(E_BUILTIN_FUN id);
 E_TYPE mcc_builtin_ret_type(E_BUILTIN_FUN id);
 
 E_TYPE mcc_builtin_param_type(E_BUILTIN_FUN id, int num);
+
+mcc_tac_inst_t *mcc_expr_to_tac(expression_t *expr);
 
 #ifdef __cplusplus
 }
