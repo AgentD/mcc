@@ -31,8 +31,6 @@ typedef enum {
 	TAC_RET,
 	TAC_STORE,
 
-	/** \brief Load address of variable */
-	TAC_LOAD_ADDRESS,
 	/** \brief Load immediate value */
 	TAC_IMMEDIATE,
 	/** \brief Dereference value */

@@ -70,7 +70,6 @@ static void tac_print(str_tab_t *ident, mcc_tac_inst_t *tac)
 		case TAC_OP_NEG:
 		case TAC_OP_INV:
 		case TAC_CALL:
-		case TAC_LOAD_ADDRESS:
 		case TAC_LOAD:
 			t->num = stmtcount++;
 			break;
@@ -158,9 +157,6 @@ static void tac_print(str_tab_t *ident, mcc_tac_inst_t *tac)
 			break;
 		case TAC_PUSH_ARG:
 			printf("\tPUSHARG %s\n", arg0);
-			break;
-		case TAC_LOAD_ADDRESS:
-			printf("\tt%u := addroff(%s)\n", tac->num, arg0);
 			break;
 		case TAC_LOAD:
 			printf("\tt%u := LOAD %s\n", tac->num, arg0);
