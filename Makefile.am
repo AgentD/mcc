@@ -24,10 +24,13 @@ libmcc_la_LFLAGS = $(AM_LFLAGS) --header-file=scanner.h
 mcc2dot_SOURCES = tools/mcc2dot.c
 mcc2dot_LDADD = libmcc.la
 
+mcc2tac_SOURCES = tools/mcc2tac.c
+mcc2tac_LDADD = libmcc.la
+
 mcc_check_SOURCES = tools/mcc_check.c
 mcc_check_LDADD = libmcc.la
 
-bin_PROGRAMS += mcc2dot mcc_check
+bin_PROGRAMS += mcc2dot mcc_check mcc2tac
 lib_LTLIBRARIES += libmcc.la
 
 include test/Makemodule.am

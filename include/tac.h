@@ -89,6 +89,7 @@ typedef struct mcc_tac_inst_t {
 	TAC_OPCODE op;
 	tac_type_t type;
 	struct mcc_tac_inst_t *next;
+	unsigned int num;
 
 	struct {
 		TAC_ARG_TYPE type;

@@ -24,6 +24,7 @@ src/parser.c
 src/parser.h
 
 mcc2dot
+mcc2tac
 mcc_check
 test-driver
 test_*
