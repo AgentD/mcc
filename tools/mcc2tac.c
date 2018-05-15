@@ -4,6 +4,21 @@
 
 #include "mcc.h"
 
+static void tac_type_to_str(mcc_tac_inst_t *tac, char *ptr)
+{
+	unsigned int i = tac->type.ptr_level;
+
+	while (i--)
+		*(ptr++) = '*';
+
+	switch (tac->type.type) {
+	case TAC_TYPE_INT: strcpy(ptr, "int"); break;
+	case TAC_TYPE_FLOAT: strcpy(ptr, "float"); break;
+	case TAC_TYPE_BYTE: strcpy(ptr, "byte"); break;
+	case TAC_TYPE_NONE: strcpy(ptr, "none"); break;
+	}
+}
+
 static void tac_arg_to_str(mcc_tac_inst_t *tac, unsigned int i,
 			   str_tab_t *ident, char *ptr)
 {
@@ -93,7 +108,10 @@ static void tac_print(str_tab_t *ident, mcc_tac_inst_t *tac)
 			printf("\tPARAM %s %s\n", arg0, arg1);
 			break;
 		case TAC_ALLOCA:
-			printf("\tV%d := ALLOCA %s\n", tac->num, arg0);
+			tac_type_to_str(tac, arg1);
+
+			printf("\tV%d := ALLOCA %s OF TYPE %s\n",
+				tac->num, arg0, arg1);
 			break;
 		case TAC_LABEL:
 			printf("L%d:\n", tac->num);
