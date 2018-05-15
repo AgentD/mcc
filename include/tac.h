@@ -105,6 +105,17 @@ typedef struct mcc_tac_inst_t {
 	} arg[2];
 } mcc_tac_inst_t;
 
+static FORCE_INLINE void mcc_tac_free(mcc_tac_inst_t *tac)
+{
+	mcc_tac_inst_t *old;
+
+	while (tac != NULL) {
+		old = tac;
+		tac = tac->next;
+		free(old);
+	}
+}
+
 static FORCE_INLINE mcc_tac_inst_t *mcc_mk_tac_node(TAC_OPCODE op)
 {
 	mcc_tac_inst_t *node = calloc(1, sizeof(*node));

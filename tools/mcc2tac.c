@@ -4,17 +4,6 @@
 
 #include "mcc.h"
 
-static void mcc_tac_free(mcc_tac_inst_t *tac)
-{
-	mcc_tac_inst_t *old;
-
-	while (tac != NULL) {
-		old = tac;
-		tac = tac->next;
-		free(old);
-	}
-}
-
 static void tac_arg_to_str(mcc_tac_inst_t *tac, unsigned int i,
 			   str_tab_t *ident, char *ptr)
 {
