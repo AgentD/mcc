@@ -261,7 +261,7 @@ static mcc_tac_inst_t *short_circuit_binary(expression_t *expr, TAC_OPCODE skip_
 	n->next->arg[0].u.ref = l;
 	n->next->arg[1].type = TAC_ARG_RESULT;
 	n->next->arg[1].u.ref = r;
-	return n;
+	return list;
 }
 
 /*****************************************************************************/
@@ -300,37 +300,30 @@ static mcc_tac_inst_t *var_ref(decl_t *var, expression_t *index)
 {
 	mcc_tac_inst_t *list, *n;
 
-	list = mcc_mk_tac_node(TAC_LOAD_ADDRESS);
-	list->type = mcc_decl_to_tac_type(var->type);
-	list->type.ptr_level += 1;
-	list->arg[0].type = TAC_ARG_VAR;
-	list->arg[0].u.ref = var->user;
+	if (index != NULL) {
+		list = n = mcc_expr_to_tac(index);
+		while (n->next != NULL)
+			n = n->next;
+		n->next = mcc_mk_tac_node(TAC_OP_ADD);
+		n->next->type = mcc_decl_to_tac_type(var->type);
+		n->next->type.ptr_level += 1;
+		n->next->arg[0].type = TAC_ARG_VAR;
+		n->next->arg[0].u.ref = var->user;
+		n->next->arg[1].type = TAC_ARG_RESULT;
+		n->next->arg[1].u.ref = n;
+		n = n->next;
 
-	if (index == NULL) {
-		if (var->flags & DECL_FLAG_ARRAY) {
-			list->op = TAC_LOAD;
-			list->type.ptr_level -= 1;
-		}
-		return list;
+		n->next = mcc_mk_tac_node(TAC_LOAD);
+		n->next->type = list->type;
+		n->next->type.ptr_level -= 1;
+		n->next->arg[0].type = TAC_ARG_RESULT;
+		n->next->arg[0].u.ref = n;
+	} else {
+		list = mcc_mk_tac_node(TAC_LOAD);
+		list->type = mcc_decl_to_tac_type(var->type);
+		list->arg[0].type = TAC_ARG_VAR;
+		list->arg[0].u.ref = var->user;
 	}
-
-	list->next = mcc_expr_to_tac(index);
-	for (n = list; n->next != NULL; n = n->next)
-		;
-
-	n->next = mcc_mk_tac_node(TAC_OP_ADD);
-	n->next->type = list->type;
-	n->next->arg[0].type = TAC_ARG_RESULT;
-	n->next->arg[0].u.ref = list;
-	n->next->arg[1].type = TAC_ARG_RESULT;
-	n->next->arg[1].u.ref = n;
-	n = n->next;
-
-	n->next = mcc_mk_tac_node(TAC_LOAD);
-	n->next->type = list->type;
-	n->next->type.ptr_level -= 1;
-	n->next->arg[0].type = TAC_ARG_RESULT;
-	n->next->arg[0].u.ref = n;
 	return list;
 }
 

@@ -167,10 +167,11 @@ static mcc_tac_inst_t *var_to_tac(decl_t *decl)
 
 static mcc_tac_inst_t *if_to_tac(statement_t *stmt)
 {
-	mcc_tac_inst_t *l1, *l2, *n, *list = mcc_expr_to_tac(stmt->st.branch.cond);
+	mcc_tac_inst_t *l1, *l2, *n, *list;
 
-	for (n = list; n->next != NULL; n = n->next)
-		;
+	n = list = mcc_expr_to_tac(stmt->st.branch.cond);
+	while (n->next != NULL)
+		n = n->next;
 
 	l1 = mcc_mk_tac_node(TAC_LABEL);
 
@@ -258,38 +259,39 @@ static mcc_tac_inst_t *stmt_list_to_tac(statement_t *stmt)
 
 static mcc_tac_inst_t *assign_to_tac(statement_t *stmt)
 {
-	mcc_tac_inst_t *n, *list, *val, *addr;
+	mcc_tac_inst_t *n, *list, *val;
+	decl_t *var;
 
 	n = list = mcc_expr_to_tac(stmt->st.assign_resolved.value);
 	for (n = list; n->next != NULL; n = n->next)
 		;
 	val = n;
 
-	n->next = mcc_mk_tac_node(TAC_LOAD_ADDRESS);
-	n->next->type = mcc_decl_to_tac_type(stmt->st.assign_resolved.target->type);
-	n->next->type.ptr_level += 1;
-	n->next->arg[0].type = TAC_ARG_VAR;
-	n->next->arg[0].u.ref = stmt->st.assign_resolved.target->user;
-	n = n->next;
-	addr = n;
+	var = stmt->st.assign_resolved.target;
 
 	if (stmt->st.assign_resolved.array_index != NULL) {
 		n->next = mcc_expr_to_tac(stmt->st.assign_resolved.array_index);
 		while (n->next != NULL)
 			n = n->next;
 		n->next = mcc_mk_tac_node(TAC_OP_ADD);
-		n->next->type = addr->type;
-		n->next->arg[0].type = TAC_ARG_RESULT;
-		n->next->arg[0].u.ref = addr;
+		n->next->type = mcc_decl_to_tac_type(var->type);
+		n->next->type.ptr_level += 1;
+		n->next->arg[0].type = TAC_ARG_VAR;
+		n->next->arg[0].u.ref = var->user;
 		n->next->arg[1].type = TAC_ARG_RESULT;
 		n->next->arg[1].u.ref = n;
 		n = n->next;
-		addr = n;
 	}
 
 	n->next = mcc_mk_tac_node(TAC_STORE);
-	n->next->arg[0].type = TAC_ARG_RESULT;
-	n->next->arg[0].u.ref = addr;
+
+	if (stmt->st.assign_resolved.array_index != NULL) {
+		n->next->arg[0].type = TAC_ARG_RESULT;
+		n->next->arg[0].u.ref = n;
+	} else {
+		n->next->arg[0].type = TAC_ARG_VAR;
+		n->next->arg[0].u.ref = var->user;
+	}
 	n->next->arg[1].type = TAC_ARG_RESULT;
 	n->next->arg[1].u.ref = val;
 	return list;
