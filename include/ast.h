@@ -10,6 +10,7 @@
 #include "literal.h"
 #include "decl.h"
 #include "expr.h"
+#include "tac.h"
 
 typedef struct function_def_t function_def_t;
 typedef struct program_t program_t;
@@ -49,6 +50,8 @@ function_def_t *mcc_function(E_TYPE type, off_t identifier,
 			     decl_t *parameters, statement_t *body);
 
 void mcc_function_free(function_def_t *f);
+
+mcc_tac_inst_t *mcc_function_to_tac(function_def_t *fun);
 
 #ifdef __cplusplus
 }
