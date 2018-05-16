@@ -122,8 +122,8 @@ arguments        : expression                                            { $$ = 
 
 single_expr      : literal                                               { $$ = mcc_sex_literal($1); $$->line_no = $1.line_no; }
                  | TK_IDENTIFIER                                         { $$ = mcc_sex_identifier($1); SLOC($$, @1); }
-                 | "-" expression                                        { $$ = mcc_sex_unary(SEX_UNARY_NEG, $2); SLOC($$, @1); }
-                 | "!" expression                                        { $$ = mcc_sex_unary(SEX_UNARY_INV, $2); SLOC($$, @1); }
+                 | "-" single_expr                                       { $$ = mcc_sex_unary(SEX_UNARY_NEG, $2); SLOC($$, @1); }
+                 | "!" single_expr                                       { $$ = mcc_sex_unary(SEX_UNARY_INV, $2); SLOC($$, @1); }
                  | "(" expression ")"                                    { $$ = $2; SLOC($$, @1); }
                  | TK_IDENTIFIER "[" expression "]"                      { $$ = mcc_sex_array_access($1, $3); SLOC($$, @2); }
                  | TK_IDENTIFIER "(" ")"                                 { $$ = mcc_sex_call($1, NULL); SLOC($$, @2); }
