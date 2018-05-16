@@ -36,7 +36,7 @@ static void tac_arg_to_str(mcc_tac_inst_t *tac, unsigned int i,
 		if (tac->arg[i].u.ref->op == TAC_ALLOCA)
 			sprintf(ptr, "V%u", tac->arg[i].u.ref->num);
 		else
-			sprintf(ptr, "P%u", tac->arg[i].u.ref->num);
+			sprintf(ptr, "P%u", tac->arg[i].u.ref->arg[0].u.index);
 		break;
 	case TAC_ARG_NAME:
 		strcpy(ptr, mcc_str_tab_resolve(ident, tac->arg[i].u.name));
@@ -105,7 +105,8 @@ static void tac_print(str_tab_t *ident, mcc_tac_inst_t *tac)
 			printf("\tENDFUN\n\n\n");
 			break;
 		case TAC_FUN_PARAM:
-			printf("\tPARAM %s %s\n", arg0, arg1);
+			tac_type_to_str(tac, arg1);
+			printf("\tPARAM %s OF TYPE %s\n", arg0, arg1);
 			break;
 		case TAC_ALLOCA:
 			tac_type_to_str(tac, arg1);
