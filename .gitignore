@@ -23,6 +23,7 @@ scanner.h
 src/parser.c
 src/parser.h
 
+mcc
 mcc2dot
 mcc2tac
 mcc_check

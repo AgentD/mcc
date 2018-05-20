@@ -31,7 +31,10 @@ mcc2tac_LDADD = libmcc.la
 mcc_check_SOURCES = tools/mcc_check.c
 mcc_check_LDADD = libmcc.la
 
-bin_PROGRAMS += mcc2dot mcc_check mcc2tac
+mcc_SOURCES = tools/mcc.c
+mcc_LDADD = libmcc.la
+
+bin_PROGRAMS += mcc2dot mcc_check mcc2tac mcc
 lib_LTLIBRARIES += libmcc.la
 
 include test/Makemodule.am
