@@ -434,6 +434,38 @@ static bool uni_phi(mcc_tac_inst_t *tac)
 	return change;
 }
 
+static bool transitive_jumps(mcc_tac_inst_t *tac)
+{
+	mcc_tac_inst_t *t, *tgt;
+	bool change = false;
+
+	for (t = tac; t != NULL; t = t->next) {
+		switch (t->op) {
+		case TAC_JZ:
+		case TAC_JNZ:
+			tgt = t->arg[1].u.ref->next;
+
+			if (tgt != NULL && tgt->op == TAC_JMP) {
+				t->arg[1] = tgt->arg[0];
+				change = true;
+			}
+			break;
+		case TAC_JMP:
+			tgt = t->arg[0].u.ref->next;
+
+			if (tgt->op == TAC_JMP) {
+				t->arg[0] = tgt->arg[0];
+				change = true;
+			}
+			break;
+		default:
+			break;
+		}
+	}
+
+	return change;
+}
+
 mcc_tac_inst_t *mcc_optimize_tac(mcc_tac_inst_t *tac)
 {
 	bool change;
@@ -446,6 +478,7 @@ mcc_tac_inst_t *mcc_optimize_tac(mcc_tac_inst_t *tac)
 		change = constant_jumps(tac, &tac) || change;
 		change = remove_unreachable(tac, &tac) || change;
 		change = uni_phi(tac) || change;
+		change = transitive_jumps(tac) || change;
 	} while (change);
 
 	return tac;
