@@ -16,9 +16,10 @@ BUILT_SOURCES += src/parser.h
 libmcc_la_SOURCES = include/str_tab.h src/str_tab.c include/ast.h src/ast.c
 libmcc_la_SOURCES += src/token.h src/expr.c src/scanner.l src/parser.y
 libmcc_la_SOURCES += src/stmt.c src/decl.c src/function.c src/semantic.c
-libmcc_la_SOURCES += src/typecheck.c src/optimize.c
+libmcc_la_SOURCES += src/typecheck.c src/optimize.c src/bitmap.c
 libmcc_la_SOURCES += include/mcc.h include/literal.h include/expr.h
 libmcc_la_SOURCES += include/statement.h include/decl.h include/symtab.h
+libmcc_la_SOURCES += include/bitmap.h
 libmcc_la_LFLAGS = $(AM_LFLAGS) --header-file=scanner.h
 
 mcc2dot_SOURCES = tools/mcc2dot.c
