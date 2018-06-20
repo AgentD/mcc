@@ -156,6 +156,8 @@ extern "C" {
 
 mcc_tac_inst_t *mcc_optimize_tac(mcc_tac_inst_t *tac);
 
+mcc_tac_inst_t *mcc_tac_allocate_ids(mcc_tac_inst_t *tac);
+
 #ifdef __cplusplus
 }
 #endif
