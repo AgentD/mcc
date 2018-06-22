@@ -56,13 +56,11 @@ static void tac_arg_to_str(mcc_tac_inst_t *tac, unsigned int i,
 	}
 }
 
-static void tac_print(str_tab_t *ident, mcc_tac_inst_t *tac)
+static void tac_simple_enumerate(mcc_tac_inst_t *t)
 {
 	unsigned int lblcount = 0, stmtcount = 0, varcount = 0;
-	char arg0[256], arg1[256];
-	mcc_tac_inst_t *t;
 
-	for (t = tac; t != NULL; t = t->next) {
+	for (; t != NULL; t = t->next) {
 		switch (t->op) {
 		case TAC_LABEL:
 			t->num = lblcount++;
@@ -70,6 +68,10 @@ static void tac_print(str_tab_t *ident, mcc_tac_inst_t *tac)
 		case TAC_ALLOCA:
 			t->num = varcount++;
 			break;
+		case TAC_CALL:
+			if (t->type.type == TAC_TYPE_NONE)
+				break;
+			/* fall-through */
 		case TAC_IMMEDIATE:
 		case TAC_OP_ADD:
 		case TAC_OP_SUB:
@@ -84,7 +86,6 @@ static void tac_print(str_tab_t *ident, mcc_tac_inst_t *tac)
 		case TAC_OP_PHI:
 		case TAC_OP_NEG:
 		case TAC_OP_INV:
-		case TAC_CALL:
 		case TAC_LOAD:
 		case TAC_COPY:
 			t->num = stmtcount++;
@@ -93,6 +94,11 @@ static void tac_print(str_tab_t *ident, mcc_tac_inst_t *tac)
 			break;
 		}
 	}
+}
+
+static void tac_print(str_tab_t *ident, mcc_tac_inst_t *tac)
+{
+	char arg0[256], arg1[256];
 
 	while (tac != NULL) {
 		tac_arg_to_str(tac, 0, ident, arg0);
@@ -173,7 +179,11 @@ static void tac_print(str_tab_t *ident, mcc_tac_inst_t *tac)
 			printf("\tt%u := !%s\n", tac->num, arg0);
 			break;
 		case TAC_CALL:
-			printf("\tt%u := CALL %s\n", tac->num, arg0);
+			if (tac->type.type == TAC_TYPE_NONE) {
+				printf("\tCALL %s\n", arg0);
+			} else {
+				printf("\tt%u := CALL %s\n", tac->num, arg0);
+			}
 			break;
 		case TAC_PUSH_ARG:
 			printf("\tPUSHARG %s\n", arg0);
@@ -199,15 +209,22 @@ int main(int argc, char **argv)
 	semantic_result_t sem;
 	mcc_tac_inst_t *tac;
 	function_def_t *fun;
+	bool ssa_form = true;
 	(void)argv;
 
-	if (argc != 1) {
-		fputs(	"Usage: mcc2tac\n\n"
+	if (argc > 2 || (argc == 2 && strcmp(argv[1], "--no-ssa") != 0)) {
+		fputs(	"Usage: mcc2tac [--no-ssa]\n\n"
 			"mcc source is read from stdin, tac source is\n"
 			"written to stdout.\n\n"
-			"USE PIPES!\n", stderr);
+			"If --no-ssa is specified, temporary variables are\n"
+			"reused, phi() expressions eliminated, etc. and the\n"
+			"result is no longer in SSA form.\n",
+			stderr);
 		return EXIT_FAILURE;
 	}
+
+	if (argc == 2 && strcmp(argv[1], "--no-ssa") == 0)
+		ssa_form = false;
 
 	result = mcc_parse_file(stdin);
 
@@ -243,6 +260,12 @@ int main(int argc, char **argv)
 	for (fun = result.program.functions; fun != NULL; fun = fun->next) {
 		tac = mcc_function_to_tac(fun);
 		tac = mcc_optimize_tac(tac);
+
+		if (ssa_form) {
+			tac_simple_enumerate(tac);
+		} else {
+			tac = mcc_tac_allocate_ids(tac);
+		}
 
 		tac_print(&result.program.identifiers, tac);
 
