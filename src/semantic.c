@@ -93,6 +93,8 @@ static semantic_result_t link_fun_expr(expression_t *expr, program_t *prog,
 	switch (expr->type) {
 	case SEX_UNARY_NEG:
 	case SEX_UNARY_INV:
+	case SEX_UNARY_INT_TO_FLOAT:
+	case SEX_UNARY_FLOAT_TO_INT:
 		return link_fun_expr(expr->u.unary, prog, symtab);
 	case SEX_CALL_RESOLVED:
 	case SEX_CALL_BUILTIN:

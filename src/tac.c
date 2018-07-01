@@ -42,6 +42,8 @@ static bool tac_is_id_used(mcc_tac_inst_t *tac, unsigned int id)
 		case TAC_OP_NEQU:
 		case TAC_OP_NEG:
 		case TAC_OP_INV:
+		case TAC_OP_FTOI:
+		case TAC_OP_ITOF:
 		case TAC_LOAD:
 		case TAC_COPY:
 			if (tac->num == id)
@@ -77,6 +79,8 @@ static void tac_remap_id(mcc_tac_inst_t *tac, unsigned int id,
 		case TAC_OP_NEQU:
 		case TAC_OP_NEG:
 		case TAC_OP_INV:
+		case TAC_OP_FTOI:
+		case TAC_OP_ITOF:
 		case TAC_LOAD:
 		case TAC_COPY:
 			if (tac->num == id)
@@ -176,6 +180,8 @@ mcc_tac_inst_t *mcc_tac_allocate_ids(mcc_tac_inst_t *tac)
 		case TAC_OP_NEQU:
 		case TAC_OP_NEG:
 		case TAC_OP_INV:
+		case TAC_OP_FTOI:
+		case TAC_OP_ITOF:
 		case TAC_LOAD:
 		case TAC_COPY:
 			mcc_bitmap_allocate(&map, &out);

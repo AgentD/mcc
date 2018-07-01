@@ -182,6 +182,16 @@ static void sex_to_dot(program_t *prog, expression_t *sex)
 		sex_to_dot(prog, sex->u.unary);
 		print_arrow(sex, sex->u.unary, NULL);
 		break;
+	case SEX_UNARY_FLOAT_TO_INT:
+		print_label(sex, "float-to-int");
+		sex_to_dot(prog, sex->u.unary);
+		print_arrow(sex, sex->u.unary, NULL);
+		break;
+	case SEX_UNARY_INT_TO_FLOAT:
+		print_label(sex, "int-to-float");
+		sex_to_dot(prog, sex->u.unary);
+		print_arrow(sex, sex->u.unary, NULL);
+		break;
 	case BINOP_ADD: str = "+"; goto binary;
 	case BINOP_SUB: str = "-"; goto binary;
 	case BINOP_MUL: str = "*"; goto binary;

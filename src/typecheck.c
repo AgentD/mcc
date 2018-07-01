@@ -60,7 +60,7 @@ static semantic_result_t type_check_expr(expression_t *expr)
 {
 	semantic_result_t ret = { .status = SEMANTIC_STATUS_OK };
 	E_TYPE type = TYPE_VOID, ltype, rtype;
-	expression_t *idx;
+	expression_t *idx, *new;
 	decl_t *var;
 	arg_t *arg;
 	int i;
@@ -88,12 +88,17 @@ static semantic_result_t type_check_expr(expression_t *expr)
 			ret.u.expr = expr;
 		}
 		break;
+	case SEX_UNARY_INT_TO_FLOAT:
+		return type_check_expr(expr->u.unary);
+	case SEX_UNARY_FLOAT_TO_INT:
+		return type_check_expr(expr->u.unary);
 	case SEX_UNARY_INV:
 		type = TYPE_BOOL;
 		ret = type_check_expr(expr->u.unary);
 		if (ret.status != SEMANTIC_STATUS_OK)
 			break;
-		if (!cast_possible(TYPE_BOOL, expr->u.unary->datatype)) {
+		if (expr->u.unary->datatype != TYPE_BOOL &&
+		    expr->u.unary->datatype != TYPE_INT) {
 			ret.status = SEMANTIC_OP_NOT_BOOLEAN;
 			ret.u.expr = expr;
 		}
@@ -161,6 +166,17 @@ static semantic_result_t type_check_expr(expression_t *expr)
 				type = TYPE_INT;
 			}
 		}
+
+		if (type == TYPE_FLOAT && ltype != TYPE_FLOAT) {
+			new = mcc_sex_unary(SEX_UNARY_INT_TO_FLOAT,
+					    expr->u.binary.left);
+			expr->u.binary.left = new;
+		}
+		if (type == TYPE_FLOAT && rtype != TYPE_FLOAT) {
+			new = mcc_sex_unary(SEX_UNARY_INT_TO_FLOAT,
+					    expr->u.binary.right);
+			expr->u.binary.right = new;
+		}
 		break;
 	case SEX_CALL_RESOLVED:
 		var = expr->u.call_resolved.fun->parameters;
@@ -181,6 +197,18 @@ static semantic_result_t type_check_expr(expression_t *expr)
 				ret.status = SEMANTIC_OP_ARG_TYPE;
 				ret.u.expr = expr;
 				break;
+			}
+
+			if (var->type == TYPE_FLOAT &&
+			    arg->expr->datatype != TYPE_FLOAT) {
+				new = mcc_sex_unary(SEX_UNARY_INT_TO_FLOAT,
+						    arg->expr);
+				arg->expr = new;
+			} else if (var->type != TYPE_FLOAT &&
+				   arg->expr->datatype == TYPE_FLOAT) {
+				new = mcc_sex_unary(SEX_UNARY_FLOAT_TO_INT,
+						    arg->expr);
+				arg->expr = new;
 			}
 
 			var = var->next;
@@ -213,6 +241,18 @@ static semantic_result_t type_check_expr(expression_t *expr)
 				ret.status = SEMANTIC_OP_ARG_TYPE;
 				ret.u.expr = expr;
 				break;
+			}
+
+			if (type == TYPE_FLOAT &&
+			    arg->expr->datatype != TYPE_FLOAT) {
+				new = mcc_sex_unary(SEX_UNARY_INT_TO_FLOAT,
+						    arg->expr);
+				arg->expr = new;
+			} else if (type != TYPE_FLOAT &&
+				   arg->expr->datatype == TYPE_FLOAT) {
+				new = mcc_sex_unary(SEX_UNARY_FLOAT_TO_INT,
+						    arg->expr);
+				arg->expr = new;
 			}
 
 			arg = arg->next;

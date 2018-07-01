@@ -88,6 +88,8 @@ static void tac_simple_enumerate(mcc_tac_inst_t *t)
 		case TAC_OP_INV:
 		case TAC_LOAD:
 		case TAC_COPY:
+		case TAC_OP_FTOI:
+		case TAC_OP_ITOF:
 			t->num = stmtcount++;
 			break;
 		default:
@@ -105,6 +107,12 @@ static void tac_print(str_tab_t *ident, mcc_tac_inst_t *tac)
 		tac_arg_to_str(tac, 1, ident, arg1);
 
 		switch (tac->op) {
+		case TAC_OP_FTOI:
+			printf("\tt%u := float-to-int %s\n", tac->num, arg0);
+			break;
+		case TAC_OP_ITOF:
+			printf("\tt%u := int-to-float %s\n", tac->num, arg0);
+			break;
 		case TAC_BEGIN_FUNCTION:
 			printf("%s:\n\tBEGINFUN\n", arg0);
 			break;

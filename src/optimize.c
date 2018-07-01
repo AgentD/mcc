@@ -28,23 +28,6 @@ static bool remove_tagged(mcc_tac_inst_t *tac, mcc_tac_inst_t **out)
 	return change;
 }
 
-static void type_promote(mcc_tac_inst_t *tac)
-{
-	if (tac->arg[0].type == TAC_ARG_IMM_FLOAT ||
-	    tac->arg[1].type == TAC_ARG_IMM_FLOAT) {
-		if (tac->arg[0].type == TAC_ARG_IMM_INT) {
-			tac->arg[0].type = TAC_ARG_IMM_FLOAT;
-			tac->arg[0].u.fval = tac->arg[0].u.ival;
-		}
-		if (tac->arg[1].type == TAC_ARG_IMM_INT) {
-			tac->arg[1].type = TAC_ARG_IMM_FLOAT;
-			tac->arg[1].u.fval = tac->arg[0].u.ival;
-		}
-	}
-}
-
-
-
 static bool value_pull(mcc_tac_inst_t *tac)
 {
 	bool change = false;
@@ -112,6 +95,8 @@ static bool remove_unused(mcc_tac_inst_t *tac, mcc_tac_inst_t **out)
 		case TAC_OP_NEG:
 		case TAC_OP_INV:
 		case TAC_COPY:
+		case TAC_OP_FTOI:
+		case TAC_OP_ITOF:
 			t->num = 1;
 			break;
 		default:
@@ -151,8 +136,13 @@ static bool calc_constant(mcc_tac_inst_t *tac)
 		}
 
 		switch (tac->op) {
+		case TAC_OP_FTOI:
+			tac->arg[0].u.fval = (float)tac->arg[0].u.ival;
+			break;
+		case TAC_OP_ITOF:
+			tac->arg[0].u.ival = (int)tac->arg[0].u.fval;
+			break;
 		case TAC_OP_ADD:
-			type_promote(tac);
 			if (tac->arg[0].type == TAC_ARG_IMM_FLOAT) {
 				tac->arg[0].u.fval += tac->arg[1].u.fval;
 			} else {
@@ -160,7 +150,6 @@ static bool calc_constant(mcc_tac_inst_t *tac)
 			}
 			break;
 		case TAC_OP_SUB:
-			type_promote(tac);
 			if (tac->arg[0].type == TAC_ARG_IMM_FLOAT) {
 				tac->arg[0].u.fval -= tac->arg[1].u.fval;
 			} else {
@@ -168,7 +157,6 @@ static bool calc_constant(mcc_tac_inst_t *tac)
 			}
 			break;
 		case TAC_OP_MUL:
-			type_promote(tac);
 			if (tac->arg[0].type == TAC_ARG_IMM_FLOAT) {
 				tac->arg[0].u.fval *= tac->arg[1].u.fval;
 			} else {
@@ -176,7 +164,6 @@ static bool calc_constant(mcc_tac_inst_t *tac)
 			}
 			break;
 		case TAC_OP_DIV:
-			type_promote(tac);
 			if (tac->arg[0].type == TAC_ARG_IMM_FLOAT) {
 				tac->arg[0].u.fval /= tac->arg[1].u.fval;
 			} else {
@@ -184,7 +171,6 @@ static bool calc_constant(mcc_tac_inst_t *tac)
 			}
 			break;
 		case TAC_OP_LT:
-			type_promote(tac);
 			if (tac->arg[0].type == TAC_ARG_IMM_FLOAT) {
 				tac->arg[0].type = TAC_ARG_IMM_INT;
 				tac->arg[0].u.ival = tac->arg[0].u.fval < tac->arg[1].u.fval;
@@ -193,7 +179,6 @@ static bool calc_constant(mcc_tac_inst_t *tac)
 			}
 			break;
 		case TAC_OP_GT:
-			type_promote(tac);
 			if (tac->arg[0].type == TAC_ARG_IMM_FLOAT) {
 				tac->arg[0].type = TAC_ARG_IMM_INT;
 				tac->arg[0].u.ival = tac->arg[0].u.fval > tac->arg[1].u.fval;
@@ -202,7 +187,6 @@ static bool calc_constant(mcc_tac_inst_t *tac)
 			}
 			break;
 		case TAC_OP_LEQ:
-			type_promote(tac);
 			if (tac->arg[0].type == TAC_ARG_IMM_FLOAT) {
 				tac->arg[0].type = TAC_ARG_IMM_INT;
 				tac->arg[0].u.ival = tac->arg[0].u.fval <= tac->arg[1].u.fval;
@@ -211,7 +195,6 @@ static bool calc_constant(mcc_tac_inst_t *tac)
 			}
 			break;
 		case TAC_OP_GEQ:
-			type_promote(tac);
 			if (tac->arg[0].type == TAC_ARG_IMM_FLOAT) {
 				tac->arg[0].type = TAC_ARG_IMM_INT;
 				tac->arg[0].u.ival = tac->arg[0].u.fval >= tac->arg[1].u.fval;
@@ -220,7 +203,6 @@ static bool calc_constant(mcc_tac_inst_t *tac)
 			}
 			break;
 		case TAC_OP_EQU:
-			type_promote(tac);
 			if (tac->arg[0].type == TAC_ARG_IMM_FLOAT) {
 				tac->arg[0].type = TAC_ARG_IMM_INT;
 				tac->arg[0].u.ival = tac->arg[0].u.fval == tac->arg[1].u.fval;
@@ -229,7 +211,6 @@ static bool calc_constant(mcc_tac_inst_t *tac)
 			}
 			break;
 		case TAC_OP_NEQU:
-			type_promote(tac);
 			if (tac->arg[0].type == TAC_ARG_IMM_FLOAT) {
 				tac->arg[0].type = TAC_ARG_IMM_INT;
 				tac->arg[0].u.ival = tac->arg[0].u.fval != tac->arg[1].u.fval;
@@ -258,23 +239,6 @@ static bool calc_constant(mcc_tac_inst_t *tac)
 		tac->op = TAC_IMMEDIATE;
 		tac->arg[1].type = TAC_ARG_UNUSED;
 		change = true;
-
-		switch (tac->arg[0].type) {
-		case TAC_ARG_IMM_INT:
-			if (tac->type.type == TAC_TYPE_FLOAT) {
-				tac->arg[0].u.ival=tac->arg[0].u.fval;
-				change = true;
-			}
-			break;
-		case TAC_ARG_IMM_FLOAT:
-			if (tac->type.type == TAC_TYPE_INT) {
-				tac->arg[0].u.fval=tac->arg[0].u.ival;
-				change = true;
-			}
-			break;
-		default:
-			break;
-		}
 	}
 
 	return change;

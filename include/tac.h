@@ -54,6 +54,9 @@ typedef enum {
 	TAC_PUSH_ARG,
 	TAC_CALL,
 
+	TAC_OP_ITOF,
+	TAC_OP_FTOI,
+
 	TAC_COPY,
 } TAC_OPCODE;
 

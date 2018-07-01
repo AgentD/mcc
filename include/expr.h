@@ -52,6 +52,10 @@ typedef enum {
 
 	/** \brief Access to a variable */
 	SEX_RESOLVED_VAR,
+
+	/* generated during type check */
+	SEX_UNARY_INT_TO_FLOAT,
+	SEX_UNARY_FLOAT_TO_INT,
 } E_EXPR_TYPE;
 
 struct expression_t {

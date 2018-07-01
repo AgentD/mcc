@@ -23,6 +23,17 @@ expression_t *mcc_sex_unary(E_EXPR_TYPE op, expression_t *exp)
 {
 	expression_t *s = calloc(1, sizeof(*s));
 
+	switch (op) {
+	case SEX_UNARY_INT_TO_FLOAT:
+		s->datatype = TYPE_FLOAT;
+		break;
+	case SEX_UNARY_FLOAT_TO_INT:
+		s->datatype = TYPE_INT;
+		break;
+	default:
+		break;
+	}
+
 	s->type = op;
 	s->u.unary = exp;
 	return s;
@@ -95,6 +106,8 @@ void mcc_expr_free(expression_t *sex)
 			break;
 		case SEX_UNARY_NEG:
 		case SEX_UNARY_INV:
+		case SEX_UNARY_INT_TO_FLOAT:
+		case SEX_UNARY_FLOAT_TO_INT:
 			mcc_expr_free(sex->u.unary);
 			break;
 		default:
@@ -425,6 +438,8 @@ mcc_tac_inst_t *mcc_expr_to_tac(expression_t *expr)
 	case BINOP_NEQU: return simple_binary(TAC_OP_NEQU, expr);
 	case SEX_UNARY_NEG: return simple_unary(TAC_OP_NEG, expr);
 	case SEX_UNARY_INV: return simple_unary(TAC_OP_INV, expr);
+	case SEX_UNARY_INT_TO_FLOAT: return simple_unary(TAC_OP_ITOF, expr);
+	case SEX_UNARY_FLOAT_TO_INT: return simple_unary(TAC_OP_FTOI, expr);
 	case BINOP_ANL: return short_circuit_binary(expr, TAC_JZ);
 	case BINOP_ORL: return short_circuit_binary(expr, TAC_JNZ);
 	case SEX_CALL_BUILTIN: return mk_builtin_call(expr);
