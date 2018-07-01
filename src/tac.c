@@ -147,6 +147,14 @@ mcc_tac_inst_t *mcc_tac_allocate_ids(mcc_tac_inst_t *tac)
 	mcc_bitmap_init(&map);
 
 	for (t = tac; t != NULL; t = t->next) {
+		for (i = 0; i < 2; ++i) {
+			if (t->arg[i].type != TAC_ARG_RESULT)
+				continue;
+
+			if (!tac_is_used(t->next, t->arg[i].u.ref))
+				mcc_bitmap_free(&map, t->arg[i].u.ref->num);
+		}
+
 		switch (t->op) {
 		case TAC_LABEL:
 			t->num = lblcount++;
@@ -191,14 +199,6 @@ mcc_tac_inst_t *mcc_tac_allocate_ids(mcc_tac_inst_t *tac)
 			break;
 		default:
 			break;
-		}
-
-		for (i = 0; i < 2; ++i) {
-			if (t->arg[i].type != TAC_ARG_RESULT)
-				continue;
-
-			if (!tac_is_used(t->next, t->arg[i].u.ref))
-				mcc_bitmap_free(&map, t->arg[i].u.ref->num);
 		}
 	}
 
