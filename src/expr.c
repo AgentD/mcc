@@ -317,20 +317,12 @@ static mcc_tac_inst_t *var_ref(decl_t *var, expression_t *index)
 		list = n = mcc_expr_to_tac(index);
 		while (n->next != NULL)
 			n = n->next;
-		n->next = mcc_mk_tac_node(TAC_OP_ADD);
+		n->next = mcc_mk_tac_node(TAC_LOAD);
 		n->next->type = mcc_decl_to_tac_type(var->type);
-		n->next->type.ptr_level += 1;
 		n->next->arg[0].type = TAC_ARG_VAR;
 		n->next->arg[0].u.ref = var->user;
 		n->next->arg[1].type = TAC_ARG_RESULT;
 		n->next->arg[1].u.ref = n;
-		n = n->next;
-
-		n->next = mcc_mk_tac_node(TAC_LOAD);
-		n->next->type = list->type;
-		n->next->type.ptr_level -= 1;
-		n->next->arg[0].type = TAC_ARG_RESULT;
-		n->next->arg[0].u.ref = n;
 	} else {
 		list = mcc_mk_tac_node(TAC_LOAD);
 		list->type = mcc_decl_to_tac_type(var->type);

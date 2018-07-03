@@ -197,7 +197,7 @@ static void tac_print(str_tab_t *ident, mcc_tac_inst_t *tac)
 			printf("\tPUSHARG %s\n", arg0);
 			break;
 		case TAC_LOAD:
-			printf("\tt%u := LOAD %s\n", tac->num, arg0);
+			printf("\tt%u := LOAD %s %s\n", tac->num, arg0, arg1);
 			break;
 		case TAC_STORE:
 			printf("\tSTORE %s <- %s\n", arg0, arg1);
