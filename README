@@ -18,3 +18,17 @@ Compile from distribution tar ball:
  $ ./configure
  $ make
 
+
+Using the compiler:
+
+ Translate to assembly:
+ $ ./mcc in.mC out.S
+
+ Assemble the run time:
+ $ as --32 mccrt.S -o mccrt.o
+
+ Assemble the output file:
+ $ as --32 out.S -o out.o
+
+ Link:
+ $ ld -m elf_i386 *.o -lc --dynamic-linker=/lib/ld-linux.so.2
